@@ -70,6 +70,38 @@ final class ComparisonStoreTests: XCTestCase {
   }
 
   @MainActor
+  func testReturningToSourcesKeepsArtifactsAndClearsComparisonState() {
+    let store = ComparisonStore()
+    let baselineURL = URL(fileURLWithPath: "/tmp/Baseline.app")
+    let candidateURL = URL(fileURLWithPath: "/tmp/Candidate.dmg")
+    store.setArtifact(url: baselineURL, for: .baseline)
+    store.setArtifact(url: candidateURL, for: .candidate)
+    store.report = DeltaEngine().compare(
+      before: TestFixtures.snapshot(),
+      after: TestFixtures.snapshot(version: "2.0"))
+    store.searchText = "camera"
+    store.selectedItemID = "example"
+
+    store.returnToSourceSelection()
+
+    XCTAssertNil(store.report)
+    XCTAssertEqual(store.baseline?.url, baselineURL)
+    XCTAssertEqual(store.candidate?.url, candidateURL)
+    XCTAssertEqual(store.searchText, "")
+    XCTAssertNil(store.selectedItemID)
+    XCTAssertEqual(store.phase, .idle)
+  }
+
+  @MainActor
+  func testMixedSelectionFormatsAreExplainedBeforeAnalysis() {
+    let store = ComparisonStore()
+    store.setArtifact(url: URL(fileURLWithPath: "/tmp/Baseline.app"), for: .baseline)
+    store.setArtifact(url: URL(fileURLWithPath: "/tmp/Candidate.pkg"), for: .candidate)
+
+    XCTAssertNotNil(store.selectionFormatNotice)
+  }
+
+  @MainActor
   func testSavedBaselineIsNotReanalyzed() async throws {
     let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
       "ComparisonStoreBaseline-\(UUID().uuidString)", isDirectory: true)

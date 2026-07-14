@@ -12,6 +12,7 @@ struct ComparisonActions {
   var chooseBaseline: () -> Void
   var chooseCandidate: () -> Void
   var analyze: () -> Void
+  var returnToSources: () -> Void
   var swap: () -> Void
   var exportHTML: () -> Void
   var exportJSON: () -> Void
@@ -19,6 +20,7 @@ struct ComparisonActions {
   var canAnalyze: Bool
   var canExport: Bool
   var canSwap: Bool
+  var canReturnToSources: Bool
 }
 
 private struct ComparisonActionsKey: FocusedValueKey {
@@ -52,6 +54,9 @@ struct AppDeltaCommands: Commands {
       Button(L10n.text("Swap Baseline and Candidate")) { actions?.swap() }
         .keyboardShortcut("s", modifiers: [.command, .option])
         .disabled(actions?.canSwap != true)
+      Button(L10n.text("Back to Sources")) { actions?.returnToSources() }
+        .keyboardShortcut("[", modifiers: [.command])
+        .disabled(actions?.canReturnToSources != true)
       Divider()
       Button(L10n.text("Toggle Inspector")) { actions?.toggleInspector() }
         .keyboardShortcut("i", modifiers: [.command, .option])

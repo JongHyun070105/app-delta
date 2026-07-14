@@ -6,6 +6,8 @@ enum TestFixtures {
   static func snapshot(
     name: String = "Fixture",
     version: String = "1.0",
+    sourceKind: ArtifactKind = .application,
+    bundleIdentifier: String? = nil,
     team: String? = "TEAM123",
     entitlements: [String: PlistValue] = [:],
     privacy: [String: String] = [:],
@@ -13,11 +15,11 @@ enum TestFixtures {
     files: [AppSnapshot.FileEntry] = []
   ) -> AppSnapshot {
     AppSnapshot(
-      sourceName: "\(name).app",
-      sourceKind: .application,
+      sourceName: "\(name).\(sourceKind.rawValue)",
+      sourceKind: sourceKind,
       identity: .init(
         name: name,
-        bundleIdentifier: "com.example.\(name.lowercased())",
+        bundleIdentifier: bundleIdentifier ?? "com.example.\(name.lowercased())",
         version: version,
         build: "1",
         minimumSystemVersion: "14.0",
@@ -26,7 +28,7 @@ enum TestFixtures {
         bundleBytes: 1_024
       ),
       signing: .init(
-        identifier: "com.example.\(name.lowercased())",
+        identifier: bundleIdentifier ?? "com.example.\(name.lowercased())",
         teamIdentifier: team,
         authorities: ["Developer ID Application: Example"],
         cdHash: "abc",

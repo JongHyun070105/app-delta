@@ -74,6 +74,12 @@ swift test                              # unit + secure artifact integration tes
    its evidence.
 5. Export a self-contained HTML report or structured JSON when needed.
 
+If you selected the wrong artifact, use **Back to Sources** in the report or
+press Command-[. Your selections stay in place so you can replace only the
+incorrect one. App Delta also supports mixed `.app`, `.dmg`, and installer
+comparisons; it warns when packaging formats or application identifiers differ
+so those broad changes are not mistaken for an ordinary version update.
+
 Keyboard shortcuts are available from the **Comparison** and **Export** menus.
 
 ### Comparing a built-in app update

@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -11,10 +10,6 @@ struct SourcePickerView: View {
       Spacer(minLength: 20)
 
       VStack(spacing: 9) {
-        Image(nsImage: NSApplication.shared.applicationIconImage)
-          .resizable()
-          .frame(width: 72, height: 72)
-          .accessibilityHidden(true)
         Text(L10n.text("See what changed inside a Mac app"))
           .font(.largeTitle.weight(.semibold))
         Text(
@@ -55,6 +50,16 @@ struct SourcePickerView: View {
         )
       }
       .frame(maxWidth: 900)
+
+      if let formatNotice = store.selectionFormatNotice {
+        Label(formatNotice, systemImage: "exclamationmark.triangle.fill")
+          .font(.callout)
+          .foregroundStyle(.secondary)
+          .padding(.horizontal, 14)
+          .padding(.vertical, 10)
+          .background(.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+          .accessibilityElement(children: .combine)
+      }
 
       HStack(spacing: 12) {
         Button {

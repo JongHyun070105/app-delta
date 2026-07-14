@@ -322,9 +322,23 @@ enum L10n {
     "Why can Gatekeeper results differ between Macs?": "Mac마다 Gatekeeper 결과가 다른 이유는 무엇인가요?",
     "App Delta cannot reconstruct files that were already replaced. Use a previous DMG, a vendor or GitHub release, or a Time Machine copy as Baseline. Prepare App Update before the next update.":
       "App Delta는 이미 교체된 파일을 복원할 수 없습니다. 이전 DMG, 공급자 또는 GitHub 릴리스, Time Machine 복사본을 기준 버전으로 사용하세요. 다음 업데이트 전에는 ‘앱 업데이트 비교 준비’를 실행하세요.",
+    "Application identity could not be confirmed": "애플리케이션 식별 정보를 확인할 수 없습니다",
+    "At least one identifier is unavailable. Check the application names and sources before interpreting the result.":
+      "하나 이상의 식별자를 확인할 수 없습니다. 결과를 해석하기 전에 애플리케이션 이름과 출처를 확인하세요.",
+    "Back to Sources": "선택 화면으로 돌아가기",
+    "Comparing %@ with %@ is supported, but packaging differences may produce many file and component changes.":
+      "%@와 %@ 비교를 지원하지만 패키징 차이로 인해 파일과 구성요소 변경이 많이 표시될 수 있습니다.",
+    "Different artifact formats selected": "서로 다른 아티팩트 형식을 선택했습니다",
+    "Different formats and identifiers detected": "서로 다른 형식과 식별자가 감지되었습니다",
+    "Different formats selected: %@ and %@. Comparison is supported, but packaging differences may appear as broad changes.":
+      "서로 다른 형식을 선택했습니다: %@ 및 %@. 비교는 지원하지만 패키징 차이가 광범위한 변경으로 표시될 수 있습니다.",
     "Export a self-contained HTML report for people to read or JSON for automation. Reports are generated locally and use the currently selected language.":
       "사람이 읽을 수 있는 독립형 HTML 보고서나 자동화용 JSON을 내보내세요. 보고서는 로컬에서 생성되며 현재 선택한 언어를 사용합니다.",
     "Gatekeeper reflects the current Mac's trust policy, network availability, and cached notarization state. App Delta keeps accepted, rejected, and unavailable results separate.":
       "Gatekeeper는 현재 Mac의 신뢰 정책, 네트워크 상태와 캐시된 공증 상태를 반영합니다. App Delta는 승인, 거부, 확인 불가 결과를 분리해 표시합니다.",
+    "Return to the artifact selection screen": "아티팩트 선택 화면으로 돌아갑니다",
+    "The identifiers are %@ and %@. Confirm that these are the intended versions before interpreting the result.":
+      "식별자는 %@ 및 %@입니다. 결과를 해석하기 전에 의도한 버전이 맞는지 확인하세요.",
+    "These appear to be different applications": "서로 다른 애플리케이션으로 보입니다",
   ]
 }

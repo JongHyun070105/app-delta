@@ -8,6 +8,12 @@ struct ComparisonDetailView: View {
       if let report = store.report {
         ComparisonHeader(report: report)
         Divider()
+        if let notice = store.compatibilityNotice {
+          CompatibilityNoticeView(notice: notice) {
+            store.returnToSourceSelection()
+          }
+          Divider()
+        }
         if store.selectedCategory == .overview {
           OverviewSummary(
             report: report, items: store.items(for: .overview), selection: $store.selectedItemID)
@@ -18,6 +24,28 @@ struct ComparisonDetailView: View {
       }
     }
     .navigationTitle(store.selectedCategory.title)
+  }
+}
+
+private struct CompatibilityNoticeView: View {
+  let notice: ComparisonCompatibilityNotice
+  let returnToSources: () -> Void
+
+  var body: some View {
+    HStack(alignment: .top, spacing: 10) {
+      Image(systemName: "exclamationmark.triangle.fill")
+        .foregroundStyle(.orange)
+      VStack(alignment: .leading, spacing: 4) {
+        Text(notice.title).font(.headline)
+        Text(notice.detail).font(.callout).foregroundStyle(.secondary)
+      }
+      Spacer(minLength: 16)
+      Button(L10n.text("Back to Sources"), action: returnToSources)
+    }
+    .padding(.horizontal, 20)
+    .padding(.vertical, 12)
+    .background(.orange.opacity(0.08))
+    .accessibilityElement(children: .contain)
   }
 }
 

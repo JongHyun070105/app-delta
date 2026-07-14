@@ -86,6 +86,22 @@ final class ComparisonStore: ObservableObject {
     baseline != nil && candidate != nil && savedBaseline == nil && !phase.isWorking
   }
 
+  var compatibilityNotice: ComparisonCompatibilityNotice? {
+    guard let report else { return nil }
+    return ComparisonCompatibilityNotice.evaluate(before: report.before, after: report.after)
+  }
+
+  var selectionFormatNotice: String? {
+    let baselineKind = savedBaseline?.snapshot.sourceKind ?? baseline?.kind
+    guard let baselineKind, let candidateKind = candidate?.kind, baselineKind != candidateKind
+    else {
+      return nil
+    }
+    return L10n.format(
+      "Different formats selected: %@ and %@. Comparison is supported, but packaging differences may appear as broad changes.",
+      baselineKind.label, candidateKind.label)
+  }
+
   var selectedItem: DeltaItem? {
     guard let selectedItemID else { return nil }
     return report?.items.first { $0.id == selectedItemID }
@@ -211,6 +227,15 @@ final class ComparisonStore: ObservableObject {
 
   func cancelAnalysis() {
     stopCurrentAnalysis()
+    phase = .idle
+  }
+
+  func returnToSourceSelection() {
+    stopCurrentAnalysis()
+    report = nil
+    selectedCategory = .overview
+    selectedItemID = nil
+    searchText = ""
     phase = .idle
   }
 
