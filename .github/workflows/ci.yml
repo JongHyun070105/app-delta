@@ -17,5 +17,15 @@ jobs:
         run: swift test -Xswiftc -warnings-as-errors
       - name: Build release
         run: ./script/build_and_run.sh --package
-      - name: Verify release archive exists
-        run: test -s dist/AppDelta-v0.1.0-macos.zip
+      - name: Verify release artifacts
+        run: |
+          test -s dist/AppDelta-v0.2.0-macos-universal.zip
+          test -s dist/AppDelta-v0.2.0-macos-universal.dmg
+          test -s dist/AppDelta-v0.2.0-macos-universal.dmg.sha256
+          (cd dist && shasum -a 256 -c AppDelta-v0.2.0-macos-universal.dmg.sha256)
+          hdiutil verify dist/AppDelta-v0.2.0-macos-universal.dmg
+          codesign --verify --deep --strict dist/AppDelta.app
+          test "$(defaults read "$PWD/dist/AppDelta.app/Contents/Info" CFBundleIconFile)" = "AppIcon"
+          test -s dist/AppDelta.app/Contents/Resources/AppIcon.icns
+          file dist/AppDelta.app/Contents/MacOS/AppDelta | grep -q 'arm64'
+          file dist/AppDelta.app/Contents/MacOS/AppDelta | grep -q 'x86_64'

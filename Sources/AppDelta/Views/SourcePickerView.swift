@@ -4,15 +4,16 @@ import UniformTypeIdentifiers
 
 struct SourcePickerView: View {
   @ObservedObject var store: ComparisonStore
+  @State private var showsBaselineLibrary = false
 
   var body: some View {
     VStack(spacing: 28) {
       Spacer(minLength: 20)
 
       VStack(spacing: 9) {
-        Image(systemName: "app.dashed")
-          .font(.system(size: 42, weight: .medium))
-          .foregroundStyle(.tint)
+        Image(nsImage: NSApplication.shared.applicationIconImage)
+          .resizable()
+          .frame(width: 72, height: 72)
           .accessibilityHidden(true)
         Text(L10n.text("See what changed inside a Mac app"))
           .font(.largeTitle.weight(.semibold))
@@ -32,6 +33,7 @@ struct SourcePickerView: View {
           title: L10n.text("Baseline"),
           subtitle: L10n.text("Previous or trusted version"),
           artifact: store.baseline,
+          savedBaseline: store.savedBaseline,
           choose: { store.chooseArtifact(for: .baseline) },
           clear: { store.clear(.baseline) },
           receive: { store.setArtifact(url: $0, for: .baseline) }
@@ -46,12 +48,39 @@ struct SourcePickerView: View {
           title: L10n.text("Candidate"),
           subtitle: L10n.text("New version to inspect"),
           artifact: store.candidate,
+          savedBaseline: nil,
           choose: { store.chooseArtifact(for: .candidate) },
           clear: { store.clear(.candidate) },
           receive: { store.setArtifact(url: $0, for: .candidate) }
         )
       }
       .frame(maxWidth: 900)
+
+      HStack(spacing: 12) {
+        Button {
+          store.chooseApplicationToPreserve()
+        } label: {
+          Label(L10n.text("Prepare App Update…"), systemImage: "archivebox")
+        }
+
+        Button {
+          showsBaselineLibrary = true
+        } label: {
+          Label(L10n.text("Saved Baselines…"), systemImage: "clock.arrow.circlepath")
+        }
+        .disabled(store.savedBaselines.isEmpty)
+      }
+
+      if let record = store.savedBaseline {
+        Label(
+          L10n.format(
+            "%@ %@ is saved as the baseline. Update the app, then compare its current version.",
+            record.displayName, record.versionLabel),
+          systemImage: "checkmark.seal.fill"
+        )
+        .font(.callout)
+        .foregroundStyle(.secondary)
+      }
 
       VStack(spacing: 12) {
         Button {
@@ -75,6 +104,9 @@ struct SourcePickerView: View {
       Spacer(minLength: 20)
     }
     .padding(36)
+    .sheet(isPresented: $showsBaselineLibrary) {
+      BaselineLibraryView(store: store)
+    }
   }
 }
 
@@ -82,6 +114,7 @@ private struct ArtifactDropCard: View {
   let title: String
   let subtitle: String
   let artifact: SelectedArtifact?
+  let savedBaseline: SavedBaseline?
   let choose: () -> Void
   let clear: () -> Void
   let receive: (URL) -> Void
@@ -95,14 +128,32 @@ private struct ArtifactDropCard: View {
           Text(subtitle).font(.caption).foregroundStyle(.secondary)
         }
         Spacer()
-        if artifact != nil {
+        if artifact != nil || savedBaseline != nil {
           Button(L10n.text("Clear"), action: clear)
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
         }
       }
 
-      if let artifact {
+      if let savedBaseline {
+        HStack(spacing: 14) {
+          Image(systemName: "clock.arrow.circlepath")
+            .font(.system(size: 28))
+            .foregroundStyle(.tint)
+            .frame(width: 46, height: 46)
+            .background(.tint.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+          VStack(alignment: .leading, spacing: 4) {
+            Text(savedBaseline.displayName).fontWeight(.medium).lineLimit(1)
+            Text(
+              L10n.format("Saved baseline · %@", savedBaseline.versionLabel)
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+          }
+          Spacer()
+        }
+        .accessibilityElement(children: .combine)
+      } else if let artifact {
         HStack(spacing: 14) {
           Image(systemName: icon(for: artifact.kind))
             .font(.system(size: 28))

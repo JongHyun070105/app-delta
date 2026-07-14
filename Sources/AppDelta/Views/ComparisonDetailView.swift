@@ -50,10 +50,10 @@ private struct ArtifactIdentityView: View {
   var body: some View {
     VStack(alignment: alignment, spacing: 3) {
       Text(L10n.text(label)).font(.caption2.weight(.bold)).foregroundStyle(.secondary)
-      Text("\(snapshot.identity.name) \(snapshot.identity.version)")
+      Text("\(snapshot.identity.name) \(L10n.text(snapshot.identity.version))")
         .font(.headline)
         .lineLimit(1)
-      Text(snapshot.identity.bundleIdentifier)
+      Text(L10n.text(snapshot.identity.bundleIdentifier))
         .font(.caption.monospaced())
         .foregroundStyle(.secondary)
         .lineLimit(1)

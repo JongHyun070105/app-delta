@@ -56,7 +56,7 @@ struct ComparisonRootView: View {
         Label(L10n.text("Swap"), systemImage: "arrow.left.arrow.right")
       }
       .help(L10n.text("Swap baseline and candidate"))
-      .disabled(store.baseline == nil || store.candidate == nil || store.phase.isWorking)
+      .disabled(!store.canSwap)
 
       Button {
         store.analyze()
@@ -116,7 +116,8 @@ struct ComparisonRootView: View {
       exportJSON: { store.export(.json) },
       toggleInspector: { store.showsInspector.toggle() },
       canAnalyze: store.canAnalyze,
-      canExport: store.report != nil
+      canExport: store.report != nil,
+      canSwap: store.canSwap
     )
   }
 }

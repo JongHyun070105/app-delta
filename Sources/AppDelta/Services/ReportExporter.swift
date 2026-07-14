@@ -82,9 +82,9 @@ struct ReportExporter: Sendable {
         <h1>\(escape(L10n.text("App Delta Report")))</h1>
         <div class="subtitle">\(escape(L10n.format("Generated %@ · %d observable changes", ISO8601DateFormatter().string(from: report.generatedAt), report.changedItems.count)))</div>
         <div class="summary">
-          <div class="artifact"><strong>\(escape(L10n.text("Baseline")))</strong><h2>\(escape(report.before.identity.name)) \(escape(report.before.identity.version))</h2><div>\(escape(report.before.identity.bundleIdentifier))</div></div>
+          <div class="artifact"><strong>\(escape(L10n.text("Baseline")))</strong><h2>\(escape(report.before.identity.name)) \(escape(L10n.text(report.before.identity.version)))</h2><div>\(escape(L10n.text(report.before.identity.bundleIdentifier)))</div></div>
           <div class="arrow">→</div>
-          <div class="artifact"><strong>\(escape(L10n.text("Candidate")))</strong><h2>\(escape(report.after.identity.name)) \(escape(report.after.identity.version))</h2><div>\(escape(report.after.identity.bundleIdentifier))</div></div>
+          <div class="artifact"><strong>\(escape(L10n.text("Candidate")))</strong><h2>\(escape(report.after.identity.name)) \(escape(L10n.text(report.after.identity.version)))</h2><div>\(escape(L10n.text(report.after.identity.bundleIdentifier)))</div></div>
         </div>
         <div class="notice"><strong>\(escape(L10n.text("Interpretation boundary:")))</strong> \(escape(L10n.text("App Delta does not determine whether an application is safe or malicious. It reports changes in signatures, declared capabilities, bundled code, package contents, and file metadata.")))</div>
         \(warnings.isEmpty ? "" : "<h2>\(escape(L10n.text("Analysis notes")))</h2><ul>\(warnings)</ul>")

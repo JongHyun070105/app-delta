@@ -68,6 +68,53 @@ final class ComparisonStoreTests: XCTestCase {
       store.report?.items.first { $0.id == "scalar:overview:Version" }?.title, "버전")
     XCTAssertEqual(store.selectedItemID, itemID)
   }
+
+  @MainActor
+  func testSavedBaselineIsNotReanalyzed() async throws {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+      "ComparisonStoreBaseline-\(UUID().uuidString)", isDirectory: true)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let vault = BaselineVault(directoryURL: directory)
+    let record = try vault.save(
+      snapshot: TestFixtures.snapshot(version: "1.0"),
+      originalApplicationURL: URL(fileURLWithPath: "/Applications/Fixture.app"))
+    let analyzer = RecordingAnalyzer(snapshot: TestFixtures.snapshot(version: "2.0"))
+    let store = ComparisonStore(analyzer: analyzer, baselineVault: vault)
+    store.selectSavedBaseline(record.summary)
+    for _ in 0..<100 where store.savedBaseline == nil {
+      try await Task.sleep(for: .milliseconds(10))
+    }
+    store.setArtifact(url: URL(fileURLWithPath: "/tmp/Candidate.app"), for: .candidate)
+
+    store.analyze()
+    for _ in 0..<100 where store.phase != .completed {
+      try await Task.sleep(for: .milliseconds(10))
+    }
+
+    XCTAssertEqual(analyzer.callCount, 1)
+    XCTAssertEqual(store.report?.before.identity.version, "1.0")
+    XCTAssertEqual(store.report?.after.identity.version, "2.0")
+  }
+
+  @MainActor
+  func testPreparingForUpdateSavesBaselineAndKeepsCandidatePath() async throws {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+      "ComparisonStorePrepare-\(UUID().uuidString)", isDirectory: true)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let vault = BaselineVault(directoryURL: directory)
+    let analyzer = RecordingAnalyzer(snapshot: TestFixtures.snapshot(version: "1.4"))
+    let store = ComparisonStore(analyzer: analyzer, baselineVault: vault)
+    let application = URL(fileURLWithPath: "/Applications/Fixture.app")
+
+    store.preserveBaselineForUpdate(at: application)
+    for _ in 0..<100 where store.phase != .completed {
+      try await Task.sleep(for: .milliseconds(10))
+    }
+
+    XCTAssertEqual(store.savedBaseline?.snapshot.identity.version, "1.4")
+    XCTAssertEqual(store.candidate?.url, application)
+    XCTAssertEqual(try vault.list().count, 1)
+  }
 }
 
 private final class SlowCancellationAwareAnalyzer: ArtifactAnalyzing, @unchecked Sendable {
@@ -93,5 +140,22 @@ private final class SlowCancellationAwareAnalyzer: ArtifactAnalyzing, @unchecked
       Thread.sleep(forTimeInterval: 0.01)
     }
     return TestFixtures.snapshot(name: artifact.displayName)
+  }
+}
+
+private final class RecordingAnalyzer: ArtifactAnalyzing, @unchecked Sendable {
+  private let lock = NSLock()
+  private let snapshot: AppSnapshot
+  private var calls = 0
+
+  init(snapshot: AppSnapshot) {
+    self.snapshot = snapshot
+  }
+
+  var callCount: Int { lock.withLock { calls } }
+
+  func analyze(_ artifact: SelectedArtifact, budget: ScanBudget) throws -> AppSnapshot {
+    lock.withLock { calls += 1 }
+    return snapshot
   }
 }

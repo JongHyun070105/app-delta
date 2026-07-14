@@ -1,0 +1,50 @@
+name: Release Preview DMG
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test
+        run: swift test -Xswiftc -warnings-as-errors
+
+      - name: Build universal DMG and app ZIP
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          APP_DELTA_VERSION="$VERSION" ./script/build_and_run.sh --package
+
+      - name: Verify packaged app and DMG
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          APP="dist/AppDelta.app"
+          DMG="dist/AppDelta-v${VERSION}-macos-universal.dmg"
+          codesign --verify --deep --strict "$APP"
+          hdiutil verify "$DMG"
+          (cd dist && shasum -a 256 -c "AppDelta-v${VERSION}-macos-universal.dmg.sha256")
+          file "$APP/Contents/MacOS/AppDelta" | grep -q 'arm64'
+          file "$APP/Contents/MacOS/AppDelta" | grep -q 'x86_64'
+          test -s "$APP/Contents/Resources/AppIcon.icns"
+
+      - name: Publish unnotarized preview release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" \
+            "dist/AppDelta-v${VERSION}-macos-universal.dmg#App Delta DMG for macOS" \
+            "dist/AppDelta-v${VERSION}-macos-universal.dmg.sha256#SHA-256 checksum" \
+            "dist/AppDelta-v${VERSION}-macos-universal.zip#App Delta app ZIP" \
+            --verify-tag \
+            --generate-notes \
+            --prerelease \
+            --title "App Delta ${GITHUB_REF_NAME} — Unnotarized Preview" \
+            --notes "This preview is ad-hoc signed and not Apple-notarized. macOS may require Control-click → Open. A notarized release requires a Developer ID certificate."
