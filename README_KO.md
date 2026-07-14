@@ -1,0 +1,78 @@
+# App Delta
+
+App Delta는 두 macOS 앱 빌드 사이에서 **실제로 관찰되는 변경점**을 로컬에서
+비교하는 네이티브 도구입니다. 검사 대상 앱이나 설치 스크립트를 실행하지 않고,
+어떤 내용도 외부 서버로 업로드하지 않습니다.
+
+> App Delta는 앱이 안전한지, 악성인지 판정하지 않습니다. 서명·선언·구성요소·
+> 파일에서 확인된 차이를 근거와 함께 보여주는 도구입니다.
+
+[English](README.md) · [구현 계획](IMPLEMENTATION_PLAN.md)
+
+![새로 추가된 macOS 권한을 비교하는 App Delta](docs/app-delta.jpg)
+
+## 비교 항목
+
+- 앱 이름, 번들 ID, 버전, 빌드, 최소 macOS, SDK, 전체 크기
+- 코드 서명 유효성, 인증서 체인, Team ID, Hardened Runtime, App Sandbox,
+  Gatekeeper 결과
+- 코드 서명 entitlement와 각 권한의 의미
+- `Info.plist` 개인정보 사용 설명 및 `PrivacyInfo.xcprivacy`
+- 로그인 항목, LaunchAgent, LaunchDaemon 같은 백그라운드 구성
+- 실행 파일, 프레임워크, XPC, 확장, 플러그인, 중첩 앱, 동적 라이브러리
+- 파일 종류·크기·실행 권한·제한된 SHA-256 내용 지문
+
+## 빌드와 실행
+
+macOS 14 이상과 Xcode 16 이상이 필요합니다.
+
+```bash
+git clone https://github.com/JongHyun070105/app-delta.git
+cd app-delta
+./script/build_and_run.sh
+```
+
+개발 및 검증 명령:
+
+```bash
+swift test
+./script/build_and_run.sh --verify
+./script/build_and_run.sh --package
+./script/create_demo_fixtures.sh
+```
+
+## 사용법
+
+1. 이전 버전을 **Baseline**에 넣습니다.
+2. 새 버전을 **Candidate**에 넣습니다.
+3. **Compare Artifacts**를 누릅니다.
+4. 카테고리·검색·중요도 필터를 이용하고, 항목을 선택해 전후 값과 근거 경로를
+   확인합니다.
+5. 필요한 경우 독립 실행형 HTML 또는 JSON 보고서를 내보냅니다.
+
+## 안전 경계
+
+- `.app`은 읽기만 합니다.
+- `.dmg`는 검증 후 Finder에 노출하지 않고 읽기 전용으로 마운트하며, 분석이
+  끝나면 즉시 해제하고 임시 디렉터리를 지웁니다.
+- `.pkg`와 `.mpkg`는 설치하거나 임의로 압축 해제하지 않습니다. 서명 정보와
+  제한된 payload 경로만 확인하므로 설치 스크립트가 실행되지 않습니다.
+- 심볼릭 링크를 따라가지 않으며, 항목 수·경로 깊이·명령 시간과 출력·해시
+  처리량에 상한이 있습니다.
+- 내보낸 HTML은 앱에서 가져온 문자열을 이스케이프하고 제한적인 CSP를 넣습니다.
+
+Gatekeeper 결과는 현재 Mac의 정책과 캐시 상태를 반영할 수 있습니다. 승인,
+거부, 확인 불가 상태와 진단 근거를 서로 구분하고 어떤 상태도 악성 판정으로
+바꾸지 않습니다.
+
+## v1 제한 사항
+
+- DMG에 여러 앱이 있으면 가장 얕은 경로의 첫 앱을 선택하고 그 사실을 메모로
+  표시합니다.
+- 패키지는 의도적으로 메타데이터와 payload 경로까지만 비교합니다.
+- 파일 내용 해시는 아티팩트당 512 MB에서 멈추며 이후 파일은 메타데이터만
+  비교합니다.
+- 소스 빌드는 ad-hoc 서명입니다. 공개 바이너리 배포 시 Developer ID 서명과
+  공증 절차를 추가해야 합니다.
+
+[MIT License](LICENSE)
