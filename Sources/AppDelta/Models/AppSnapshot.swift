@@ -5,7 +5,7 @@ enum VerificationState: String, Codable, Equatable, Sendable, CustomStringConver
   case rejected
   case unavailable
 
-  var description: String { rawValue.capitalized }
+  var description: String { L10n.text(rawValue.capitalized) }
 }
 
 struct AppSnapshot: Codable, Equatable, Sendable {

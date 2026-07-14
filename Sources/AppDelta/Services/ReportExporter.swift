@@ -36,7 +36,7 @@ struct ReportExporter: Sendable {
     let rows = report.changedItems.map { item in
       """
       <tr>
-        <td><span class="badge \(item.kind.rawValue)">\(escape(item.kind.rawValue.uppercased()))</span></td>
+        <td><span class="badge \(item.kind.rawValue)">\(escape(item.kind.label.uppercased()))</span></td>
         <td>\(escape(item.category.title))</td>
         <td><strong>\(escape(item.title))</strong><div class="detail">\(escape(item.detail))</div></td>
         <td>\(escape(item.before ?? "—"))</td>
@@ -51,7 +51,7 @@ struct ReportExporter: Sendable {
 
     return """
       <!doctype html>
-      <html lang="en">
+      <html lang="\(AppLanguage.current.effectiveCode)">
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -79,21 +79,21 @@ struct ReportExporter: Sendable {
         </style>
       </head>
       <body>
-        <h1>App Delta Report</h1>
-        <div class="subtitle">Generated \(escape(ISO8601DateFormatter().string(from: report.generatedAt))) · \(report.changedItems.count) observable changes</div>
+        <h1>\(escape(L10n.text("App Delta Report")))</h1>
+        <div class="subtitle">\(escape(L10n.format("Generated %@ · %d observable changes", ISO8601DateFormatter().string(from: report.generatedAt), report.changedItems.count)))</div>
         <div class="summary">
-          <div class="artifact"><strong>Baseline</strong><h2>\(escape(report.before.identity.name)) \(escape(report.before.identity.version))</h2><div>\(escape(report.before.identity.bundleIdentifier))</div></div>
+          <div class="artifact"><strong>\(escape(L10n.text("Baseline")))</strong><h2>\(escape(report.before.identity.name)) \(escape(report.before.identity.version))</h2><div>\(escape(report.before.identity.bundleIdentifier))</div></div>
           <div class="arrow">→</div>
-          <div class="artifact"><strong>Candidate</strong><h2>\(escape(report.after.identity.name)) \(escape(report.after.identity.version))</h2><div>\(escape(report.after.identity.bundleIdentifier))</div></div>
+          <div class="artifact"><strong>\(escape(L10n.text("Candidate")))</strong><h2>\(escape(report.after.identity.name)) \(escape(report.after.identity.version))</h2><div>\(escape(report.after.identity.bundleIdentifier))</div></div>
         </div>
-        <div class="notice"><strong>Interpretation boundary:</strong> App Delta does not determine whether an application is safe or malicious. It reports changes in signatures, declared capabilities, bundled code, package contents, and file metadata.</div>
-        \(warnings.isEmpty ? "" : "<h2>Analysis notes</h2><ul>\(warnings)</ul>")
-        <h2>Changes</h2>
+        <div class="notice"><strong>\(escape(L10n.text("Interpretation boundary:")))</strong> \(escape(L10n.text("App Delta does not determine whether an application is safe or malicious. It reports changes in signatures, declared capabilities, bundled code, package contents, and file metadata.")))</div>
+        \(warnings.isEmpty ? "" : "<h2>\(escape(L10n.text("Analysis notes")))</h2><ul>\(warnings)</ul>")
+        <h2>\(escape(L10n.text("Changes")))</h2>
         <table>
-          <thead><tr><th>Change</th><th>Category</th><th>Item</th><th>Baseline</th><th>Candidate</th></tr></thead>
+          <thead><tr><th>\(escape(L10n.text("Change")))</th><th>\(escape(L10n.text("Category")))</th><th>\(escape(L10n.text("Item")))</th><th>\(escape(L10n.text("Baseline")))</th><th>\(escape(L10n.text("Candidate")))</th></tr></thead>
           <tbody>\(rows)</tbody>
         </table>
-        <footer>Generated locally by App Delta. No artifact data was uploaded.</footer>
+        <footer>\(escape(L10n.text("Generated locally by App Delta. No artifact data was uploaded.")))</footer>
       </body>
       </html>
       """

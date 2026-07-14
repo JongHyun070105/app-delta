@@ -16,9 +16,9 @@ enum ArtifactKind: String, Codable, CaseIterable, Sendable {
 
   var label: String {
     switch self {
-    case .application: "Application"
-    case .diskImage: "Disk Image"
-    case .installerPackage: "Installer Package"
+    case .application: L10n.text("Application")
+    case .diskImage: L10n.text("Disk Image")
+    case .installerPackage: L10n.text("Installer Package")
     }
   }
 }

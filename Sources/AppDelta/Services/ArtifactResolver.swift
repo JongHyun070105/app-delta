@@ -54,7 +54,8 @@ struct ArtifactResolver: @unchecked Sendable {
       return try resolveDiskImage(at: artifact.url, budget: budget)
     case .installerPackage:
       throw AnalysisError.unsupportedArtifact(
-        "Installer packages are analyzed as package metadata rather than mounted applications.")
+        L10n.text(
+          "Installer packages are analyzed as package metadata rather than mounted applications."))
     }
   }
 
@@ -123,8 +124,9 @@ struct ArtifactResolver: @unchecked Sendable {
       var warnings: [String] = []
       if applications.count > 1 {
         warnings.append(
-          "The disk image contains multiple applications. App Delta selected \(application.lastPathComponent)."
-        )
+          L10n.format(
+            "The disk image contains multiple applications. App Delta selected %@.",
+            application.lastPathComponent))
       }
 
       let runner = commandRunner

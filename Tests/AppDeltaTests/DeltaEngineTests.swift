@@ -20,7 +20,8 @@ final class DeltaEngineTests: XCTestCase {
     XCTAssertTrue(
       report.items.contains { $0.id == "privacy:NSMicrophoneUsageDescription" && $0.kind == .added }
     )
-    XCTAssertTrue(report.items.contains { $0.title == "Version" && $0.kind == .changed })
+    XCTAssertTrue(
+      report.items.contains { $0.title == L10n.text("Version") && $0.kind == .changed })
   }
 
   func testRemovingSandboxIsImportant() {

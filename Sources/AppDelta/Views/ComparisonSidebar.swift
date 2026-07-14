@@ -5,7 +5,7 @@ struct ComparisonSidebar: View {
 
   var body: some View {
     List(selection: $store.selectedCategory) {
-      Section("Report") {
+      Section(L10n.text("Report")) {
         ForEach(DeltaCategory.allCases) { category in
           HStack(spacing: 10) {
             Image(systemName: category.systemImage)
@@ -22,9 +22,9 @@ struct ComparisonSidebar: View {
       }
 
       if let report = store.report {
-        Section("Artifacts") {
-          ArtifactSidebarRow(label: "Baseline", snapshot: report.before)
-          ArtifactSidebarRow(label: "Candidate", snapshot: report.after)
+        Section(L10n.text("Artifacts")) {
+          ArtifactSidebarRow(label: L10n.text("Baseline"), snapshot: report.before)
+          ArtifactSidebarRow(label: L10n.text("Candidate"), snapshot: report.after)
         }
       }
     }

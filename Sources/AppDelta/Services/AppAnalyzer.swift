@@ -68,8 +68,8 @@ struct AppAnalyzer: @unchecked Sendable {
         name: string(info["CFBundleDisplayName"]) ?? string(info["CFBundleName"])
           ?? appURL.deletingPathExtension().lastPathComponent,
         bundleIdentifier: string(info["CFBundleIdentifier"]) ?? "unknown.bundle.identifier",
-        version: string(info["CFBundleShortVersionString"]) ?? "Unknown",
-        build: string(info["CFBundleVersion"]) ?? "Unknown",
+        version: string(info["CFBundleShortVersionString"]) ?? L10n.text("Unknown"),
+        build: string(info["CFBundleVersion"]) ?? L10n.text("Unknown"),
         minimumSystemVersion: string(info["LSMinimumSystemVersion"]),
         sdkVersion: string(info["DTSDKName"]) ?? string(info["DTPlatformVersion"]),
         executableName: string(info["CFBundleExecutable"]),
@@ -112,7 +112,9 @@ struct AppAnalyzer: @unchecked Sendable {
     let rawPaths = payload.outputString.split(whereSeparator: \.isNewline).map(String.init)
     var warnings =
       packageMetadata.warnings + [
-        "Installer packages are compared from signed package metadata and payload paths. Package scripts and payload executables are never run."
+        L10n.text(
+          "Installer packages are compared from signed package metadata and payload paths. Package scripts and payload executables are never run."
+        )
       ]
     var safePaths: [String] = []
     for path in rawPaths.prefix(budget.maximumEntries) {
@@ -122,13 +124,17 @@ struct AppAnalyzer: @unchecked Sendable {
         !normalized.contains("\0")
       else {
         warnings.append(
-          "A package payload path was rejected because it could escape the package root.")
+          L10n.text(
+            "A package payload path was rejected because it could escape the package root."))
         continue
       }
       safePaths.append(normalized)
     }
     if rawPaths.count > budget.maximumEntries {
-      warnings.append("The package payload list was truncated at \(budget.maximumEntries) entries.")
+      warnings.append(
+        L10n.format(
+          "The package payload list was truncated at %@ entries.",
+          budget.maximumEntries.formatted()))
     }
 
     let fileSize =
@@ -156,9 +162,9 @@ struct AppAnalyzer: @unchecked Sendable {
       sourceKind: .installerPackage,
       identity: .init(
         name: inferredName,
-        bundleIdentifier: packageMetadata.identifier ?? "Unavailable",
-        version: packageMetadata.version ?? "Unavailable",
-        build: "Not applicable",
+        bundleIdentifier: packageMetadata.identifier ?? L10n.text("Unavailable"),
+        version: packageMetadata.version ?? L10n.text("Unavailable"),
+        build: L10n.text("Not applicable"),
         minimumSystemVersion: nil,
         sdkVersion: nil,
         executableName: nil,
@@ -172,7 +178,7 @@ struct AppAnalyzer: @unchecked Sendable {
           .filter { $0.contains("Developer ID Installer") || $0.contains("Authority") },
         cdHash: nil,
         signedTime: nil,
-        format: "Installer package",
+        format: L10n.text("Installer package"),
         signatureStatus: verificationState(for: signature, rejectedStatuses: [1]),
         signatureMessage: diagnostic(signature.combinedString, artifactURL: source),
         gatekeeperStatus: verificationState(for: gatekeeper, rejectedStatuses: [3]),
@@ -223,7 +229,7 @@ struct AppAnalyzer: @unchecked Sendable {
       format: parseValue("Format", in: text),
       signatureStatus: verificationState(for: verify, rejectedStatuses: [1]),
       signatureMessage: diagnostic(
-        verify.combinedString.isEmpty ? "Signature verified." : verify.combinedString,
+        verify.combinedString.isEmpty ? L10n.text("Signature verified.") : verify.combinedString,
         artifactURL: appURL),
       gatekeeperStatus: verificationState(for: gatekeeper, rejectedStatuses: [3]),
       gatekeeperMessage: diagnostic(gatekeeper.combinedString, artifactURL: appURL),
@@ -241,7 +247,9 @@ struct AppAnalyzer: @unchecked Sendable {
       return (
         nil, nil,
         [
-          "Package identifier and version were unavailable because its metadata archive could not be listed."
+          L10n.text(
+            "Package identifier and version were unavailable because its metadata archive could not be listed."
+          )
         ]
       )
     }
@@ -252,7 +260,7 @@ struct AppAnalyzer: @unchecked Sendable {
     guard !selectedEntries.isEmpty else {
       return (
         nil, nil,
-        ["Package identifier and version were not present in root package metadata."]
+        [L10n.text("Package identifier and version were not present in root package metadata.")]
       )
     }
 
@@ -267,11 +275,11 @@ struct AppAnalyzer: @unchecked Sendable {
         budget: budget
       )
       guard extraction.status == 0 else {
-        warnings.append("Package metadata entry \(entry) could not be read.")
+        warnings.append(L10n.format("Package metadata entry %@ could not be read.", entry))
         continue
       }
       guard extraction.standardOutput.count <= budget.maximumPlistBytes else {
-        warnings.append("Package metadata entry \(entry) exceeded the size limit.")
+        warnings.append(L10n.format("Package metadata entry %@ exceeded the size limit.", entry))
         continue
       }
 
@@ -283,11 +291,11 @@ struct AppAnalyzer: @unchecked Sendable {
         identifier = identifier ?? parserDelegate.identifier
         version = version ?? parserDelegate.version
       } else {
-        warnings.append("Package metadata entry \(entry) was malformed XML.")
+        warnings.append(L10n.format("Package metadata entry %@ was malformed XML.", entry))
       }
     }
     if identifier == nil || version == nil {
-      warnings.append("Some package identity fields were unavailable.")
+      warnings.append(L10n.text("Some package identity fields were unavailable."))
     }
     return (identifier, version, warnings)
   }
@@ -366,12 +374,15 @@ struct AppAnalyzer: @unchecked Sendable {
       try Task.checkCancellation()
       count += 1
       if count > budget.maximumEntries {
-        warnings.append("The file inventory was truncated at \(budget.maximumEntries) entries.")
+        warnings.append(
+          L10n.format(
+            "The file inventory was truncated at %@ entries.",
+            budget.maximumEntries.formatted()))
         break
       }
       guard url.standardizedFileURL.path.hasPrefix(canonicalRoot) else {
         enumerator.skipDescendants()
-        warnings.append("A path outside the application bundle was ignored.")
+        warnings.append(L10n.text("A path outside the application bundle was ignored."))
         continue
       }
 
@@ -380,7 +391,10 @@ struct AppAnalyzer: @unchecked Sendable {
       if relative.split(separator: "/").count > budget.maximumDepth {
         enumerator.skipDescendants()
         if !reportedDepthLimit {
-          warnings.append("Paths deeper than \(budget.maximumDepth) components were skipped.")
+          warnings.append(
+            L10n.format(
+              "Paths deeper than %@ components were skipped.",
+              budget.maximumDepth.formatted()))
           reportedDepthLimit = true
         }
         continue
@@ -438,8 +452,9 @@ struct AppAnalyzer: @unchecked Sendable {
       let formattedBudget = ByteCountFormatter.string(
         fromByteCount: budget.maximumHashedBytes, countStyle: .file)
       warnings.append(
-        "Some file content hashes were unavailable or exceeded the \(formattedBudget) safety budget. Those files are compared by metadata only."
-      )
+        L10n.format(
+          "Some file content hashes were unavailable or exceeded the %@ safety budget. Those files are compared by metadata only.",
+          formattedBudget))
     }
 
     return (
@@ -553,7 +568,8 @@ struct AppAnalyzer: @unchecked Sendable {
         values[file.path] = .dictionary(dictionary.mapValues { PlistValue.convert($0) })
       } catch {
         warnings.append(
-          "Privacy manifest \(file.path) could not be parsed: \(error.localizedDescription)")
+          L10n.format(
+            "Privacy manifest %@ could not be parsed: %@", file.path, error.localizedDescription))
       }
     }
     return (values, warnings)
@@ -609,7 +625,8 @@ struct AppAnalyzer: @unchecked Sendable {
 
   private func concise(_ value: String) -> String {
     let clean = value.trimmingCharacters(in: .whitespacesAndNewlines)
-    return clean.isEmpty ? "No diagnostic text was returned." : String(clean.prefix(1_000))
+    return clean.isEmpty
+      ? L10n.text("No diagnostic text was returned.") : String(clean.prefix(1_000))
   }
 
   private func diagnostic(_ value: String, artifactURL: URL) -> String {

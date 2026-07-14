@@ -16,16 +16,18 @@ struct DiffInspectorView: View {
             Text(item.detail).foregroundStyle(.secondary).textSelection(.enabled)
           }
 
-          InspectorValue(title: "Baseline", value: item.before)
-          InspectorValue(title: "Candidate", value: item.after)
+          InspectorValue(title: L10n.text("Baseline"), value: item.before)
+          InspectorValue(title: L10n.text("Candidate"), value: item.after)
 
           if let path = item.evidencePath {
-            InspectorValue(title: "Evidence", value: path)
+            InspectorValue(title: L10n.text("Evidence"), value: path)
           }
 
           Divider()
           Text(
-            "This report describes observable metadata and declarations. It does not establish runtime behavior or intent."
+            L10n.text(
+              "This report describes observable metadata and declarations. It does not establish runtime behavior or intent."
+            )
           )
           .font(.caption)
           .foregroundStyle(.secondary)
@@ -34,8 +36,8 @@ struct DiffInspectorView: View {
       }
     } else {
       ContentUnavailableView(
-        "Select a change", systemImage: "sidebar.right",
-        description: Text("Detailed values and evidence appear here."))
+        L10n.text("Select a change"), systemImage: "sidebar.right",
+        description: Text(L10n.text("Detailed values and evidence appear here.")))
     }
   }
 }
@@ -47,7 +49,7 @@ private struct InspectorValue: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 5) {
       Text(title.uppercased()).font(.caption2.weight(.bold)).foregroundStyle(.secondary)
-      Text(value ?? "Not present")
+      Text(value ?? L10n.text("Not present"))
         .font(.callout.monospaced())
         .textSelection(.enabled)
         .frame(maxWidth: .infinity, alignment: .leading)

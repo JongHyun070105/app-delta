@@ -17,9 +17,9 @@ final class ComparisonStore: ObservableObject {
     var label: String? {
       switch self {
       case .idle, .completed: nil
-      case .inspectingBaseline: "Inspecting baseline…"
-      case .inspectingCandidate: "Inspecting candidate…"
-      case .comparing: "Building comparison…"
+      case .inspectingBaseline: L10n.text("Inspecting baseline…")
+      case .inspectingCandidate: L10n.text("Inspecting candidate…")
+      case .comparing: L10n.text("Building comparison…")
       case .failed(let message): message
       }
     }
@@ -78,7 +78,7 @@ final class ComparisonStore: ObservableObject {
   func setArtifact(url: URL, for slot: Slot) {
     stopCurrentAnalysis()
     guard let artifact = SelectedArtifact(url: url) else {
-      phase = .failed("Choose a .app, .dmg, .pkg, or .mpkg artifact.")
+      phase = .failed(L10n.text("Choose a .app, .dmg, .pkg, or .mpkg artifact."))
       return
     }
     switch slot {
@@ -90,8 +90,9 @@ final class ComparisonStore: ObservableObject {
 
   func chooseArtifact(for slot: Slot) {
     let panel = NSOpenPanel()
-    panel.title = slot == .baseline ? "Choose Baseline Artifact" : "Choose Candidate Artifact"
-    panel.prompt = "Choose"
+    panel.title = L10n.text(
+      slot == .baseline ? "Choose Baseline Artifact" : "Choose Candidate Artifact")
+    panel.prompt = L10n.text("Choose")
     panel.canChooseFiles = true
     // Application bundles are directory packages. NSOpenPanel requires
     // directory selection for them even when treatsFilePackagesAsDirectories
@@ -185,6 +186,13 @@ final class ComparisonStore: ObservableObject {
     phase = .idle
   }
 
+  func refreshLocalization() {
+    if let report {
+      self.report = engine.compare(before: report.before, after: report.after)
+    }
+    objectWillChange.send()
+  }
+
   private func ensureCurrent(_ generation: UUID) throws {
     try Task.checkCancellation()
     guard analysisGeneration == generation else { throw CancellationError() }
@@ -199,8 +207,8 @@ final class ComparisonStore: ObservableObject {
   func export(_ format: ReportFormat) {
     guard let report else { return }
     let panel = NSSavePanel()
-    panel.title = "Export App Delta Report"
-    panel.prompt = "Export"
+    panel.title = L10n.text("Export App Delta Report")
+    panel.prompt = L10n.text("Export")
     panel.nameFieldStringValue =
       "\(safeName(report.before.identity.name))-to-\(safeName(report.after.identity.name)).\(format.fileExtension)"
     guard panel.runModal() == .OK, let destination = panel.url else { return }
@@ -208,7 +216,8 @@ final class ComparisonStore: ObservableObject {
     do {
       try exporter.write(report, format: format, to: destination)
     } catch {
-      phase = .failed("The report could not be exported: \(error.localizedDescription)")
+      phase = .failed(
+        L10n.format("The report could not be exported: %@", error.localizedDescription))
     }
   }
 

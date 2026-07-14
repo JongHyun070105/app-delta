@@ -39,6 +39,35 @@ final class ComparisonStoreTests: XCTestCase {
     XCTAssertNil(store.report)
     XCTAssertTrue(analyzer.observedCancellation)
   }
+
+  @MainActor
+  func testRefreshingLocalizationKeepsTheCurrentComparison() {
+    let previousLanguage = UserDefaults.standard.string(forKey: AppLanguage.storageKey)
+    defer {
+      if let previousLanguage {
+        UserDefaults.standard.set(previousLanguage, forKey: AppLanguage.storageKey)
+      } else {
+        UserDefaults.standard.removeObject(forKey: AppLanguage.storageKey)
+      }
+    }
+
+    UserDefaults.standard.set(AppLanguage.english.rawValue, forKey: AppLanguage.storageKey)
+    let store = ComparisonStore()
+    let before = TestFixtures.snapshot()
+    let after = TestFixtures.snapshot(version: "2.0")
+    store.report = DeltaEngine().compare(before: before, after: after)
+    let itemID = store.report?.items.first { $0.id == "scalar:overview:Version" }?.id
+    store.selectedItemID = itemID
+
+    UserDefaults.standard.set(AppLanguage.korean.rawValue, forKey: AppLanguage.storageKey)
+    store.refreshLocalization()
+
+    XCTAssertEqual(store.report?.before, before)
+    XCTAssertEqual(store.report?.after, after)
+    XCTAssertEqual(
+      store.report?.items.first { $0.id == "scalar:overview:Version" }?.title, "버전")
+    XCTAssertEqual(store.selectedItemID, itemID)
+  }
 }
 
 private final class SlowCancellationAwareAnalyzer: ArtifactAnalyzing, @unchecked Sendable {

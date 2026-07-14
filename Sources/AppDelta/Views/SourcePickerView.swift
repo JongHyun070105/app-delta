@@ -14,10 +14,12 @@ struct SourcePickerView: View {
           .font(.system(size: 42, weight: .medium))
           .foregroundStyle(.tint)
           .accessibilityHidden(true)
-        Text("See what changed inside a Mac app")
+        Text(L10n.text("See what changed inside a Mac app"))
           .font(.largeTitle.weight(.semibold))
         Text(
-          "Compare signatures, declared capabilities, privacy descriptions, background helpers, embedded components, and files — entirely on this Mac."
+          L10n.text(
+            "Compare signatures, declared capabilities, privacy descriptions, background helpers, embedded components, and files — entirely on this Mac."
+          )
         )
         .font(.title3)
         .foregroundStyle(.secondary)
@@ -27,8 +29,8 @@ struct SourcePickerView: View {
 
       HStack(spacing: 16) {
         ArtifactDropCard(
-          title: "Baseline",
-          subtitle: "Previous or trusted version",
+          title: L10n.text("Baseline"),
+          subtitle: L10n.text("Previous or trusted version"),
           artifact: store.baseline,
           choose: { store.chooseArtifact(for: .baseline) },
           clear: { store.clear(.baseline) },
@@ -41,8 +43,8 @@ struct SourcePickerView: View {
           .accessibilityHidden(true)
 
         ArtifactDropCard(
-          title: "Candidate",
-          subtitle: "New version to inspect",
+          title: L10n.text("Candidate"),
+          subtitle: L10n.text("New version to inspect"),
           artifact: store.candidate,
           choose: { store.chooseArtifact(for: .candidate) },
           clear: { store.clear(.candidate) },
@@ -55,7 +57,7 @@ struct SourcePickerView: View {
         Button {
           store.analyze()
         } label: {
-          Label("Compare Artifacts", systemImage: "rectangle.2.swap")
+          Label(L10n.text("Compare Artifacts"), systemImage: "rectangle.2.swap")
             .frame(minWidth: 160)
         }
         .buttonStyle(.borderedProminent)
@@ -63,7 +65,8 @@ struct SourcePickerView: View {
         .disabled(!store.canAnalyze)
 
         Label(
-          "Selected apps are inspected, never launched or uploaded.", systemImage: "lock.shield"
+          L10n.text("Selected apps are inspected, never launched or uploaded."),
+          systemImage: "lock.shield"
         )
         .font(.callout)
         .foregroundStyle(.secondary)
@@ -93,7 +96,7 @@ private struct ArtifactDropCard: View {
         }
         Spacer()
         if artifact != nil {
-          Button("Clear", action: clear)
+          Button(L10n.text("Clear"), action: clear)
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
         }
@@ -118,16 +121,16 @@ private struct ArtifactDropCard: View {
           Image(systemName: "arrow.down.doc")
             .font(.system(size: 27))
             .foregroundStyle(.secondary)
-          Text("Drop .app, .dmg, or .pkg")
+          Text(L10n.text("Drop .app, .dmg, or .pkg"))
             .fontWeight(.medium)
-          Text("or choose a local artifact")
+          Text(L10n.text("or choose a local artifact"))
             .font(.caption)
             .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, minHeight: 70)
       }
 
-      Button(artifact == nil ? "Choose…" : "Replace…", action: choose)
+      Button(L10n.text(artifact == nil ? "Choose…" : "Replace…"), action: choose)
         .frame(maxWidth: .infinity)
     }
     .padding(18)
@@ -147,7 +150,7 @@ private struct ArtifactDropCard: View {
       }
       return true
     }
-    .accessibilityLabel("\(title) artifact")
+    .accessibilityLabel(L10n.format("%@ artifact", title))
   }
 
   private func icon(for kind: ArtifactKind) -> String {

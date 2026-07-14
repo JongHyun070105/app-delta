@@ -60,6 +60,13 @@ swift test                              # unit + secure artifact integration tes
 
 Keyboard shortcuts are available from the **Comparison** and **Export** menus.
 
+### Language
+
+App Delta follows the Mac's language by default and currently supports English
+and Korean. Switch instantly from the globe button in the toolbar, the
+**Language** app menu, or **App Delta → Settings**. Changing the language keeps
+the current comparison open and also localizes newly exported HTML reports.
+
 ## Local-analysis and safety model
 
 App Delta does not contain analytics, accounts, databases, or an upload client.
