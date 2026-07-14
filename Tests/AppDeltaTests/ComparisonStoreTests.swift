@@ -2,8 +2,8 @@ import XCTest
 
 @testable import AppDelta
 
-@MainActor
 final class ComparisonStoreTests: XCTestCase {
+  @MainActor
   func testChangingViewFiltersClearsStaleInspectorSelection() {
     let store = ComparisonStore()
     store.selectedItemID = "example"
@@ -19,6 +19,7 @@ final class ComparisonStoreTests: XCTestCase {
     XCTAssertNil(store.selectedItemID)
   }
 
+  @MainActor
   func testCancellingAnalysisPreventsStaleResultFromBeingPublished() async throws {
     let analyzer = SlowCancellationAwareAnalyzer()
     let store = ComparisonStore(analyzer: analyzer)
