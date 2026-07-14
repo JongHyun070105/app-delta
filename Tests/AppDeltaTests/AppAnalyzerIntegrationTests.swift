@@ -94,7 +94,8 @@ final class AppAnalyzerIntegrationTests: XCTestCase {
       report.changedItems.contains { $0.id == "entitlement:com.apple.security.device.camera" })
     XCTAssertTrue(report.changedItems.contains { $0.id == "privacy:NSCameraUsageDescription" })
     XCTAssertTrue(report.changedItems.contains { $0.id == "file:Contents/Resources/payload.dat" })
-    XCTAssertFalse(report.changedItems.contains { $0.title == "Gatekeeper Diagnostic" })
+    XCTAssertFalse(
+      report.changedItems.contains { $0.title == L10n.text("Gatekeeper Diagnostic") })
     XCTAssertEqual(
       after.components.filter { $0.kind == .framework }.map(\.path),
       ["Contents/Frameworks/Fixture.framework"])
@@ -183,7 +184,13 @@ final class AppAnalyzerIntegrationTests: XCTestCase {
     XCTAssertFalse(
       FileManager.default.fileExists(atPath: marker.path), "Package scripts must never run.")
     XCTAssertTrue(snapshot.components.contains { $0.path.contains("PrivilegedHelperTools") })
-    XCTAssertTrue(snapshot.warnings.contains { $0.contains("never run") })
+    XCTAssertTrue(
+      snapshot.warnings.contains {
+        $0
+          == L10n.text(
+            "Installer packages are compared from signed package metadata and payload paths. Package scripts and payload executables are never run."
+          )
+      })
   }
 
   func testGatekeeperToolErrorIsUnavailableRatherThanRejected() throws {

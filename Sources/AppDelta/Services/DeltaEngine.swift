@@ -117,7 +117,7 @@ struct DeltaEngine: Sendable {
           severity: severity,
           title: explanation.title,
           detail: explanation.detail,
-          evidencePath: "Code signature entitlements / \(key)",
+          evidencePath: "\(L10n.text("Code signature entitlements")) / \(key)",
           before: old?.description,
           after: new?.description
         ))
@@ -139,9 +139,10 @@ struct DeltaEngine: Sendable {
           category: category,
           kind: deltaKind(before: before[key], after: after[key]),
           severity: addedSeverity,
-          title: "\(titlePrefix): \(key)",
-          detail:
-            "This is a declaration in Info.plist and does not prove the protected resource is used.",
+          title: L10n.format("%@: %@", L10n.text(titlePrefix), key),
+          detail: L10n.text(
+            "This is a declaration in Info.plist and does not prove the protected resource is used."
+          ),
           evidencePath: "Contents/Info.plist / \(key)",
           before: before[key],
           after: after[key]
@@ -161,16 +162,18 @@ struct DeltaEngine: Sendable {
       items.append(
         .init(
           id: "\(category.rawValue):added:\(value)", category: category, kind: .added,
-          severity: addedSeverity, title: "\(label): \(value)",
-          detail: "The candidate declares this value.", evidencePath: nil, before: nil, after: value
+          severity: addedSeverity, title: L10n.format("%@: %@", L10n.text(label), value),
+          detail: L10n.text("The candidate declares this value."), evidencePath: nil, before: nil,
+          after: value
         ))
     }
     for value in before.subtracting(after).sorted() {
       items.append(
         .init(
           id: "\(category.rawValue):removed:\(value)", category: category, kind: .removed,
-          severity: .info, title: "\(label): \(value)",
-          detail: "The candidate no longer declares this value.", evidencePath: nil, before: value,
+          severity: .info, title: L10n.format("%@: %@", L10n.text(label), value),
+          detail: L10n.text("The candidate no longer declares this value."), evidencePath: nil,
+          before: value,
           after: nil
         ))
     }
@@ -188,9 +191,10 @@ struct DeltaEngine: Sendable {
           category: .privacy,
           kind: deltaKind(before: before[path], after: after[path]),
           severity: after[path] == nil ? .info : .attention,
-          title: "Privacy manifest: \(path)",
-          detail:
-            "Declared required-reason APIs or collected-data metadata changed. This declaration is not evidence of runtime use.",
+          title: L10n.format("Privacy manifest: %@", path),
+          detail: L10n.text(
+            "Declared required-reason APIs or collected-data metadata changed. This declaration is not evidence of runtime use."
+          ),
           evidencePath: path,
           before: before[path]?.description,
           after: after[path]?.description
@@ -218,8 +222,7 @@ struct DeltaEngine: Sendable {
           kind: deltaKind(before: oldValue, after: newValue),
           severity: newValue == nil ? .info : addedSeverity,
           title: component.path,
-          detail:
-            "\(component.kind.rawValue.replacingOccurrences(of: "([a-z])([A-Z])", with: "$1 $2", options: .regularExpression).capitalized) component.",
+          detail: L10n.format("%@ component.", componentKindLabel(component.kind)),
           evidencePath: component.path,
           before: oldValue.map(componentDescription),
           after: newValue.map(componentDescription)
@@ -240,7 +243,8 @@ struct DeltaEngine: Sendable {
           id: "file:\(path)", category: .files,
           kind: deltaKind(before: oldValue, after: newValue),
           severity: .info, title: path,
-          detail: "File inventory metadata changed. Timestamps are intentionally ignored.",
+          detail: L10n.text(
+            "File inventory metadata changed. Timestamps are intentionally ignored."),
           evidencePath: path,
           before: oldValue.map(fileDescription),
           after: newValue.map(fileDescription)
@@ -257,11 +261,13 @@ struct DeltaEngine: Sendable {
     items: inout [DeltaItem]
   ) {
     guard before != after else { return }
+    let localizedTitle = L10n.text(title)
     items.append(
       .init(
         id: "scalar:\(category.rawValue):\(title)", category: category,
         kind: deltaKind(before: before, after: after), severity: severity,
-        title: title, detail: "Observable metadata changed between the selected artifacts.",
+        title: localizedTitle,
+        detail: L10n.text("Observable metadata changed between the selected artifacts."),
         evidencePath: nil, before: before.map(String.init(describing:)),
         after: after.map(String.init(describing:))
       ))
@@ -277,14 +283,22 @@ struct DeltaEngine: Sendable {
 
   private func componentDescription(_ value: AppSnapshot.Component) -> String {
     value.bytes.map {
-      "\(value.kind.rawValue), \(ByteCountFormatter.string(fromByteCount: $0, countStyle: .file))"
-    } ?? value.kind.rawValue
+      "\(componentKindLabel(value.kind)), \(ByteCountFormatter.string(fromByteCount: $0, countStyle: .file))"
+    } ?? componentKindLabel(value.kind)
   }
 
   private func fileDescription(_ value: AppSnapshot.FileEntry) -> String {
     let size =
       value.bytes.map { ByteCountFormatter.string(fromByteCount: $0, countStyle: .file) } ?? "—"
     let digest = value.contentSHA256.map { ", SHA-256 \($0.prefix(12))…" } ?? ""
-    return "\(value.type.rawValue), \(size)\(value.executable ? ", executable" : "")\(digest)"
+    return
+      "\(L10n.text(value.type.rawValue)), \(size)\(value.executable ? L10n.text(", executable") : "")\(digest)"
+  }
+
+  private func componentKindLabel(_ kind: AppSnapshot.Component.Kind) -> String {
+    let english = kind.rawValue.replacingOccurrences(
+      of: "([a-z])([A-Z])", with: "$1 $2", options: .regularExpression
+    ).capitalized
+    return L10n.text(english)
   }
 }

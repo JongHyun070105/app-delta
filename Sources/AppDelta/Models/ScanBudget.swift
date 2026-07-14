@@ -25,17 +25,21 @@ enum AnalysisError: LocalizedError, Equatable {
 
   var errorDescription: String? {
     switch self {
-    case .unsupportedArtifact(let value): "Unsupported artifact: \(value)"
-    case .unreadableArtifact(let value): "The artifact could not be read: \(value)"
-    case .malformedPropertyList(let value): "Invalid property list: \(value)"
-    case .noApplicationFound(let value): "No macOS application was found in \(value)."
+    case .unsupportedArtifact(let value): L10n.format("Unsupported artifact: %@", value)
+    case .unreadableArtifact(let value): L10n.format("The artifact could not be read: %@", value)
+    case .malformedPropertyList(let value): L10n.format("Invalid property list: %@", value)
+    case .noApplicationFound(let value):
+      L10n.format("No macOS application was found in %@.", value)
     case .multipleApplications(let names):
-      "More than one application was found: \(names.joined(separator: ", "))."
-    case .commandFailed(let tool, let message): "\(tool) failed: \(message)"
-    case .commandTimedOut(let tool): "\(tool) did not finish within the time limit."
-    case .outputLimitExceeded(let tool): "\(tool) produced more output than App Delta allows."
-    case .scanLimitReached(let message): "The scan stopped at its safety limit: \(message)"
-    case .unsafePath(let path): "Unsafe path was rejected: \(path)"
+      L10n.format("More than one application was found: %@.", names.joined(separator: ", "))
+    case .commandFailed(let tool, let message): L10n.format("%@ failed: %@", tool, message)
+    case .commandTimedOut(let tool):
+      L10n.format("%@ did not finish within the time limit.", tool)
+    case .outputLimitExceeded(let tool):
+      L10n.format("%@ produced more output than App Delta allows.", tool)
+    case .scanLimitReached(let message):
+      L10n.format("The scan stopped at its safety limit: %@", message)
+    case .unsafePath(let path): L10n.format("Unsafe path was rejected: %@", path)
     }
   }
 }

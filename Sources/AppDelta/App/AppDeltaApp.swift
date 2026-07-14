@@ -33,31 +33,40 @@ extension FocusedValues {
 
 struct AppDeltaCommands: Commands {
   @FocusedValue(\.comparisonActions) private var actions
+  @AppStorage(AppLanguage.storageKey) private var language = AppLanguage.system.rawValue
 
   var body: some Commands {
     CommandGroup(after: .newItem) {
-      Button("Choose Baseline…") { actions?.chooseBaseline() }
+      Button(L10n.text("Choose Baseline…")) { actions?.chooseBaseline() }
         .keyboardShortcut("o", modifiers: [.command])
-      Button("Choose Candidate…") { actions?.chooseCandidate() }
+      Button(L10n.text("Choose Candidate…")) { actions?.chooseCandidate() }
         .keyboardShortcut("o", modifiers: [.command, .shift])
     }
 
-    CommandMenu("Comparison") {
-      Button("Analyze") { actions?.analyze() }
+    CommandMenu(L10n.text("Comparison")) {
+      Button(L10n.text("Analyze")) { actions?.analyze() }
         .keyboardShortcut(.return, modifiers: [.command])
         .disabled(actions?.canAnalyze != true)
-      Button("Swap Baseline and Candidate") { actions?.swap() }
+      Button(L10n.text("Swap Baseline and Candidate")) { actions?.swap() }
         .keyboardShortcut("s", modifiers: [.command, .option])
       Divider()
-      Button("Toggle Inspector") { actions?.toggleInspector() }
+      Button(L10n.text("Toggle Inspector")) { actions?.toggleInspector() }
         .keyboardShortcut("i", modifiers: [.command, .option])
     }
 
-    CommandMenu("Export") {
-      Button("Export HTML Report…") { actions?.exportHTML() }
+    CommandMenu(L10n.text("Export")) {
+      Button(L10n.text("Export HTML Report…")) { actions?.exportHTML() }
         .disabled(actions?.canExport != true)
-      Button("Export JSON…") { actions?.exportJSON() }
+      Button(L10n.text("Export JSON…")) { actions?.exportJSON() }
         .disabled(actions?.canExport != true)
+    }
+
+    CommandMenu(L10n.text("Language")) {
+      Picker(L10n.text("Language"), selection: $language) {
+        ForEach(AppLanguage.allCases) { option in
+          Text(option.displayName).tag(option.rawValue)
+        }
+      }
     }
   }
 }
@@ -73,5 +82,9 @@ struct AppDeltaApp: App {
     }
     .defaultSize(width: 1180, height: 760)
     .commands { AppDeltaCommands() }
+
+    Settings {
+      AppDeltaSettingsView()
+    }
   }
 }

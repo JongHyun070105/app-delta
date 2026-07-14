@@ -3,10 +3,10 @@ import SwiftUI
 extension DeltaKind {
   var label: String {
     switch self {
-    case .added: "Added"
-    case .removed: "Removed"
-    case .changed: "Changed"
-    case .unchanged: "Unchanged"
+    case .added: L10n.text("Added")
+    case .removed: L10n.text("Removed")
+    case .changed: L10n.text("Changed")
+    case .unchanged: L10n.text("Unchanged")
     }
   }
 
@@ -32,9 +32,9 @@ extension DeltaKind {
 extension DeltaSeverity {
   var label: String {
     switch self {
-    case .info: "All changes"
-    case .attention: "Attention and important"
-    case .important: "Important only"
+    case .info: L10n.text("All changes")
+    case .attention: L10n.text("Attention and important")
+    case .important: L10n.text("Important only")
     }
   }
 }

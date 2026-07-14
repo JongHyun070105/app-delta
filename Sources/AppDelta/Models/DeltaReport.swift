@@ -13,13 +13,13 @@ enum DeltaCategory: String, Codable, CaseIterable, Identifiable, Sendable {
 
   var title: String {
     switch self {
-    case .overview: "Overview"
-    case .signing: "Trust & Signing"
-    case .capabilities: "Capabilities"
-    case .privacy: "Privacy"
-    case .persistence: "Background & Login"
-    case .components: "Components"
-    case .files: "Files"
+    case .overview: L10n.text("Overview")
+    case .signing: L10n.text("Trust & Signing")
+    case .capabilities: L10n.text("Capabilities")
+    case .privacy: L10n.text("Privacy")
+    case .persistence: L10n.text("Background & Login")
+    case .components: L10n.text("Components")
+    case .files: L10n.text("Files")
     }
   }
 

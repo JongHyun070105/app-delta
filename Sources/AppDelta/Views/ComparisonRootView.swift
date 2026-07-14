@@ -2,6 +2,11 @@ import SwiftUI
 
 struct ComparisonRootView: View {
   @StateObject private var store = ComparisonStore()
+  @AppStorage(AppLanguage.storageKey) private var language = AppLanguage.system.rawValue
+
+  private var selectedLanguage: AppLanguage {
+    AppLanguage(rawValue: language) ?? .system
+  }
 
   var body: some View {
     Group {
@@ -20,11 +25,16 @@ struct ComparisonRootView: View {
     }
     .toolbar { toolbarContent }
     .focusedSceneValue(\.comparisonActions, actions)
-    .searchable(text: $store.searchText, placement: .toolbar, prompt: "Search changes")
+    .searchable(
+      text: $store.searchText, placement: .toolbar, prompt: Text(L10n.text("Search changes"))
+    )
     .inspector(isPresented: $store.showsInspector) {
       DiffInspectorView(item: store.selectedItem)
+        .id(language)
         .inspectorColumnWidth(min: 260, ideal: 330, max: 480)
     }
+    .environment(\.locale, selectedLanguage.locale)
+    .onChange(of: language) { _, _ in store.refreshLocalization() }
   }
 
   private var comparisonLayout: some View {
@@ -33,6 +43,7 @@ struct ComparisonRootView: View {
         .navigationSplitViewColumnWidth(min: 190, ideal: 220, max: 280)
     } detail: {
       ComparisonDetailView(store: store)
+        .id(language)
     }
   }
 
@@ -42,44 +53,56 @@ struct ComparisonRootView: View {
       Button {
         store.swapArtifacts()
       } label: {
-        Label("Swap", systemImage: "arrow.left.arrow.right")
+        Label(L10n.text("Swap"), systemImage: "arrow.left.arrow.right")
       }
-      .help("Swap baseline and candidate")
+      .help(L10n.text("Swap baseline and candidate"))
       .disabled(store.baseline == nil || store.candidate == nil || store.phase.isWorking)
 
       Button {
         store.analyze()
       } label: {
-        Label(store.report == nil ? "Analyze" : "Analyze Again", systemImage: "waveform.path.ecg")
+        Label(
+          L10n.text(store.report == nil ? "Analyze" : "Analyze Again"),
+          systemImage: "waveform.path.ecg")
       }
       .buttonStyle(.borderedProminent)
       .disabled(!store.canAnalyze)
 
       Menu {
-        Picker("Minimum severity", selection: $store.minimumSeverity) {
+        Picker(L10n.text("Minimum severity"), selection: $store.minimumSeverity) {
           ForEach(DeltaSeverity.allCases, id: \.self) { severity in
             Text(severity.label).tag(severity)
           }
         }
       } label: {
-        Label("Filter", systemImage: "line.3.horizontal.decrease.circle")
+        Label(L10n.text("Filter"), systemImage: "line.3.horizontal.decrease.circle")
       }
       .disabled(store.report == nil)
 
       Menu {
-        Button("HTML Report…") { store.export(.html) }
-        Button("JSON…") { store.export(.json) }
+        Button(L10n.text("HTML Report…")) { store.export(.html) }
+        Button(L10n.text("JSON…")) { store.export(.json) }
       } label: {
-        Label("Export", systemImage: "square.and.arrow.up")
+        Label(L10n.text("Export"), systemImage: "square.and.arrow.up")
       }
       .disabled(store.report == nil)
+
+      Menu {
+        Picker(L10n.text("Language"), selection: $language) {
+          ForEach(AppLanguage.allCases) { option in
+            Text(option.displayName).tag(option.rawValue)
+          }
+        }
+      } label: {
+        Label(L10n.text("Language"), systemImage: "globe")
+      }
 
       Button {
         store.showsInspector.toggle()
       } label: {
-        Label("Inspector", systemImage: "sidebar.right")
+        Label(L10n.text("Inspector"), systemImage: "sidebar.right")
       }
-      .help("Show or hide the detail inspector")
+      .help(L10n.text("Show or hide the detail inspector"))
     }
   }
 
@@ -116,7 +139,7 @@ private struct AnalysisBanner: View {
         .lineLimit(2)
       Spacer()
       if phase.isWorking {
-        Button("Cancel", action: cancel)
+        Button(L10n.text("Cancel"), action: cancel)
       }
     }
     .padding(.horizontal, 14)

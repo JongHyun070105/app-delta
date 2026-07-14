@@ -49,7 +49,7 @@ private struct ArtifactIdentityView: View {
 
   var body: some View {
     VStack(alignment: alignment, spacing: 3) {
-      Text(label).font(.caption2.weight(.bold)).foregroundStyle(.secondary)
+      Text(L10n.text(label)).font(.caption2.weight(.bold)).foregroundStyle(.secondary)
       Text("\(snapshot.identity.name) \(snapshot.identity.version)")
         .font(.headline)
         .lineLimit(1)
@@ -75,11 +75,14 @@ private struct OverviewSummary: View {
     ScrollView {
       VStack(alignment: .leading, spacing: 18) {
         HStack(spacing: 12) {
-          MetricCard(title: "Observable changes", value: items.count, icon: "rectangle.2.swap")
           MetricCard(
-            title: "Added", value: items.filter { $0.kind == .added }.count, icon: "plus.circle")
+            title: L10n.text("Observable changes"), value: items.count,
+            icon: "rectangle.2.swap")
           MetricCard(
-            title: "Important", value: items.filter { $0.severity == .important }.count,
+            title: L10n.text("Added"), value: items.filter { $0.kind == .added }.count,
+            icon: "plus.circle")
+          MetricCard(
+            title: L10n.text("Important"), value: items.filter { $0.severity == .important }.count,
             icon: "exclamationmark.shield")
         }
 
@@ -87,7 +90,7 @@ private struct OverviewSummary: View {
 
         if !warnings.isEmpty {
           VStack(alignment: .leading, spacing: 8) {
-            Label("Analysis notes", systemImage: "info.circle")
+            Label(L10n.text("Analysis notes"), systemImage: "info.circle")
               .font(.headline)
             ForEach(warnings, id: \.self) { warning in
               Text("• \(warning)").foregroundStyle(.secondary)
@@ -97,7 +100,7 @@ private struct OverviewSummary: View {
           .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
         }
 
-        Text("All changes").font(.headline)
+        Text(L10n.text("All changes")).font(.headline)
         DiffList(items: items, selection: $selection)
       }
       .padding(20)
@@ -130,7 +133,9 @@ private struct InterpretationNotice: View {
     HStack(alignment: .top, spacing: 10) {
       Image(systemName: "shield.lefthalf.filled").foregroundStyle(.orange)
       Text(
-        "App Delta does not determine whether an app is safe or malicious. It reports observable changes in signing, declared capabilities, bundled components, package contents, and files."
+        L10n.text(
+          "App Delta does not determine whether an app is safe or malicious. It reports observable changes in signing, declared capabilities, bundled components, package contents, and files."
+        )
       )
       .font(.callout)
       Spacer()
@@ -147,17 +152,17 @@ private struct DiffTable: View {
   var body: some View {
     if items.isEmpty {
       ContentUnavailableView(
-        "No matching changes", systemImage: "checkmark.circle",
-        description: Text("Adjust the category, search, or severity filter."))
+        L10n.text("No matching changes"), systemImage: "checkmark.circle",
+        description: Text(L10n.text("Adjust the category, search, or severity filter.")))
     } else {
       Table(items, selection: $selection) {
-        TableColumn("Change") { item in
+        TableColumn(L10n.text("Change")) { item in
           Label(item.kind.label, systemImage: item.kind.systemImage)
             .foregroundStyle(item.kind.color)
         }
         .width(min: 92, ideal: 110)
 
-        TableColumn("Item") { item in
+        TableColumn(L10n.text("Item")) { item in
           VStack(alignment: .leading, spacing: 2) {
             Text(item.title).lineLimit(1)
             Text(item.detail).font(.caption).foregroundStyle(.secondary).lineLimit(1)
@@ -165,12 +170,12 @@ private struct DiffTable: View {
         }
         .width(min: 220, ideal: 340)
 
-        TableColumn("Baseline") { item in
+        TableColumn(L10n.text("Baseline")) { item in
           Text(item.before ?? "—").lineLimit(2).textSelection(.enabled)
         }
         .width(min: 130, ideal: 220)
 
-        TableColumn("Candidate") { item in
+        TableColumn(L10n.text("Candidate")) { item in
           Text(item.after ?? "—").lineLimit(2).textSelection(.enabled)
         }
         .width(min: 130, ideal: 220)
