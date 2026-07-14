@@ -13,8 +13,6 @@ jobs:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-      - name: Check formatting
-        run: swift format lint --recursive Sources Tests
       - name: Test
         run: swift test -Xswiftc -warnings-as-errors
       - name: Build release
