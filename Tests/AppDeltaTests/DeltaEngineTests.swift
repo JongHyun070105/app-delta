@@ -49,4 +49,26 @@ final class DeltaEngineTests: XCTestCase {
     XCTAssertEqual(forward.items.first { $0.id.contains("network.server") }?.kind, .added)
     XCTAssertEqual(reverse.items.first { $0.id.contains("network.server") }?.kind, .removed)
   }
+
+  func testCanonicalPlaceholderDoesNotBecomeAChangeWhenLanguageChanges() {
+    let previousLanguage = UserDefaults.standard.string(forKey: AppLanguage.storageKey)
+    defer {
+      if let previousLanguage {
+        UserDefaults.standard.set(previousLanguage, forKey: AppLanguage.storageKey)
+      } else {
+        UserDefaults.standard.removeObject(forKey: AppLanguage.storageKey)
+      }
+    }
+    var before = TestFixtures.snapshot(version: "Unknown")
+    before.identity.build = "Not applicable"
+    let after = before
+
+    UserDefaults.standard.set(AppLanguage.english.rawValue, forKey: AppLanguage.storageKey)
+    let english = DeltaEngine().compare(before: before, after: after)
+    UserDefaults.standard.set(AppLanguage.korean.rawValue, forKey: AppLanguage.storageKey)
+    let korean = DeltaEngine().compare(before: before, after: after)
+
+    XCTAssertFalse(english.items.contains { $0.id == "scalar:overview:Version" })
+    XCTAssertFalse(korean.items.contains { $0.id == "scalar:overview:Version" })
+  }
 }

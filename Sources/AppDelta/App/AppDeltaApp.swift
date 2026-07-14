@@ -12,12 +12,15 @@ struct ComparisonActions {
   var chooseBaseline: () -> Void
   var chooseCandidate: () -> Void
   var analyze: () -> Void
+  var returnToSources: () -> Void
   var swap: () -> Void
   var exportHTML: () -> Void
   var exportJSON: () -> Void
   var toggleInspector: () -> Void
   var canAnalyze: Bool
   var canExport: Bool
+  var canSwap: Bool
+  var canReturnToSources: Bool
 }
 
 private struct ComparisonActionsKey: FocusedValueKey {
@@ -34,6 +37,7 @@ extension FocusedValues {
 struct AppDeltaCommands: Commands {
   @FocusedValue(\.comparisonActions) private var actions
   @AppStorage(AppLanguage.storageKey) private var language = AppLanguage.system.rawValue
+  @Environment(\.openWindow) private var openWindow
 
   var body: some Commands {
     CommandGroup(after: .newItem) {
@@ -49,6 +53,10 @@ struct AppDeltaCommands: Commands {
         .disabled(actions?.canAnalyze != true)
       Button(L10n.text("Swap Baseline and Candidate")) { actions?.swap() }
         .keyboardShortcut("s", modifiers: [.command, .option])
+        .disabled(actions?.canSwap != true)
+      Button(L10n.text("Back to Sources")) { actions?.returnToSources() }
+        .keyboardShortcut("[", modifiers: [.command])
+        .disabled(actions?.canReturnToSources != true)
       Divider()
       Button(L10n.text("Toggle Inspector")) { actions?.toggleInspector() }
         .keyboardShortcut("i", modifiers: [.command, .option])
@@ -68,6 +76,13 @@ struct AppDeltaCommands: Commands {
         }
       }
     }
+
+    CommandGroup(replacing: .help) {
+      Button(L10n.text("App Delta Help")) {
+        openWindow(id: "help")
+      }
+      .keyboardShortcut("?", modifiers: [.command])
+    }
   }
 }
 
@@ -86,5 +101,10 @@ struct AppDeltaApp: App {
     Settings {
       AppDeltaSettingsView()
     }
+
+    Window("App Delta Help", id: "help") {
+      HelpView()
+    }
+    .defaultSize(width: 720, height: 620)
   }
 }

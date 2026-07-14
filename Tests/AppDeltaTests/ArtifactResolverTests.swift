@@ -36,6 +36,11 @@ private final class CancelDuringAttachRunner: CommandRunning, @unchecked Sendabl
   func run(_ tool: SystemTool, arguments: [String], budget: ScanBudget) throws -> CommandResult {
     XCTAssertEqual(tool, .hdiutil)
     switch arguments.first {
+    case "info" where lock.withLock({ sessionRoot == nil }):
+      return result(
+        status: 0,
+        standardOutput: try PropertyListSerialization.data(
+          fromPropertyList: ["images": []], format: .xml, options: 0))
     case "verify":
       return result(status: 0)
     case "attach":

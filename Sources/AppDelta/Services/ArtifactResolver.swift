@@ -67,12 +67,7 @@ struct ArtifactResolver: @unchecked Sendable {
       throw AnalysisError.unreadableArtifact(source.lastPathComponent)
     }
 
-    let verify = try commandRunner.run(
-      .hdiutil, arguments: ["verify", "-plist", source.path], budget: budget)
-    guard verify.status == 0 else {
-      throw AnalysisError.commandFailed(
-        tool: "hdiutil verify", message: concise(verify.combinedString))
-    }
+    try verifyDiskImage(at: source, budget: budget)
 
     let sessionRoot = fileManager.temporaryDirectory
       .appendingPathComponent("AppDelta-\(UUID().uuidString)", isDirectory: true)
@@ -155,6 +150,32 @@ struct ArtifactResolver: @unchecked Sendable {
     else {
       throw AnalysisError.unreadableArtifact(url.lastPathComponent)
     }
+  }
+
+  private func verifyDiskImage(at source: URL, budget: ScanBudget) throws {
+    let existingDevices = Set(
+      mountedAttachments(under: fileManager.temporaryDirectory, source: source, budget: budget)
+        .map(\.device))
+    var lastFailure: CommandResult?
+
+    for attempt in 0..<2 {
+      let result = try commandRunner.run(
+        .hdiutil, arguments: ["verify", "-plist", source.path], budget: budget)
+      if result.status == 0 { return }
+      lastFailure = result
+
+      let leakedAttachments = mountedAttachments(
+        under: fileManager.temporaryDirectory, source: source, budget: budget
+      ).filter { !existingDevices.contains($0.device) }
+      Self.detach(leakedAttachments, using: commandRunner, budget: budget)
+
+      if attempt == 0 {
+        Thread.sleep(forTimeInterval: 0.1)
+      }
+    }
+
+    throw AnalysisError.commandFailed(
+      tool: "hdiutil verify", message: concise(lastFailure?.combinedString ?? ""))
   }
 
   private func findApplications(in root: URL, budget: ScanBudget) throws -> [URL] {

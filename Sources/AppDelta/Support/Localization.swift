@@ -266,5 +266,79 @@ enum L10n {
     "%@ produced more output than App Delta allows.": "%@ 명령의 출력이 App Delta 허용량을 초과했습니다.",
     "The scan stopped at its safety limit: %@": "안전 한도에서 분석을 중단했습니다: %@",
     "Unsafe path was rejected: %@": "안전하지 않은 경로를 거부했습니다: %@",
+    "%@ %@ is saved as the baseline. Update the app, then compare its current version.":
+      "%@ %@을(를) 기준점으로 저장했습니다. 앱을 업데이트한 뒤 현재 버전과 비교하세요.",
+    "%@ · saved %@": "%@ · %@ 저장",
+    "App Delta Help": "App Delta 도움말",
+    "Are selected files uploaded?": "선택한 파일이 업로드되나요?",
+    "Baseline is the previous or trusted state. Candidate is the new state you want to inspect. App Delta reports what changed from Baseline to Candidate.":
+      "기준 버전은 이전 상태 또는 신뢰하는 상태이고, 비교 대상은 확인하려는 새로운 상태입니다. App Delta는 기준 버전에서 비교 대상으로 무엇이 바뀌었는지 보여줍니다.",
+    "Before updating, choose Prepare App Update and select the installed app. App Delta saves a compact analysis snapshot and keeps the same app path as Candidate. Run the app's update normally, return to App Delta, and compare. You can restore the snapshot later from Saved Baselines.":
+      "업데이트하기 전에 ‘앱 업데이트 비교 준비’를 선택하고 설치된 앱을 고르세요. App Delta가 작은 분석 기준점을 저장하고 같은 앱 경로를 비교 대상으로 유지합니다. 평소처럼 앱을 업데이트한 뒤 App Delta로 돌아와 비교하세요. 저장된 기준점은 나중에도 다시 선택할 수 있습니다.",
+    "Choose a macOS application to preserve before updating.":
+      "업데이트 전에 보관할 macOS 애플리케이션을 선택하세요.",
+    "Delete": "삭제",
+    "Delete saved baseline": "저장된 기준점 삭제",
+    "Delete this saved baseline?": "이 저장된 기준점을 삭제할까요?",
+    "Does a new capability prove the app used it?": "새 권한이 실제 사용을 의미하나요?",
+    "Does App Delta launch apps or installer scripts?": "App Delta가 앱이나 설치 스크립트를 실행하나요?",
+    "Done": "완료",
+    "How do I compare an app before and after its built-in update?":
+      "앱 자체 업데이트 전후를 어떻게 비교하나요?",
+    "How do I share a comparison?": "비교 결과를 어떻게 공유하나요?",
+    "Is a saved baseline a backup of the application?": "저장된 기준점은 앱 백업인가요?",
+    "No saved baselines": "저장된 기준점 없음",
+    "No. Analysis and saved baselines stay on this Mac. App Delta has no account, analytics SDK, upload service, or database.":
+      "아닙니다. 분석 결과와 저장된 기준점은 이 Mac에만 남습니다. App Delta에는 계정, 분석 SDK, 업로드 서비스 또는 데이터베이스가 없습니다.",
+    "No. Entitlements, privacy descriptions, and manifests are declarations. App Delta explains observable metadata changes but does not claim runtime behavior or malicious intent.":
+      "아닙니다. entitlement, 개인정보 설명과 매니페스트는 선언 정보입니다. App Delta는 관찰 가능한 메타데이터 변경을 설명할 뿐 실제 동작이나 악의적 의도를 단정하지 않습니다.",
+    "No. It is an analysis snapshot used only for comparison. It cannot reinstall or restore the old application. To recover an old build, keep its DMG, use Time Machine, or download an older vendor release.":
+      "아닙니다. 비교에만 사용하는 분석 기준점입니다. 이전 앱을 재설치하거나 복구할 수 없습니다. 이전 빌드를 복구하려면 DMG를 보관하거나 Time Machine 또는 공급자의 이전 릴리스를 사용하세요.",
+    "No. Selected apps are read as files. DMGs are attached read-only, and package scripts and payload executables are never run.":
+      "아닙니다. 선택한 앱은 파일로만 읽습니다. DMG는 읽기 전용으로 연결하며 패키지 스크립트와 payload 실행 파일은 절대 실행하지 않습니다.",
+    "Prepare an app before updating to save its current state.":
+      "업데이트 전에 앱의 현재 상태를 기준점으로 저장하세요.",
+    "Prepare App Update Comparison": "앱 업데이트 비교 준비",
+    "Prepare App Update…": "앱 업데이트 비교 준비…",
+    "Preserve Baseline": "기준점 저장",
+    "Saved baseline · %@": "저장된 기준점 · %@",
+    "Saved Baselines": "저장된 기준점",
+    "Saved Baselines…": "저장된 기준점…",
+    "Search help": "도움말 검색",
+    "Stored only on this Mac.": "이 Mac에만 저장됩니다.",
+    "The baseline could not be saved: %@": "기준점을 저장하지 못했습니다: %@",
+    "The saved analysis for %@ will be removed.": "%@의 저장된 분석 기록이 삭제됩니다.",
+    "The saved baseline could not be deleted: %@": "저장된 기준점을 삭제하지 못했습니다: %@",
+    "The saved baseline could not be loaded: %@": "저장된 기준점을 불러오지 못했습니다: %@",
+    "These are analysis snapshots, not copies of the original applications.":
+      "원본 앱 복사본이 아니라 분석 기준점입니다.",
+    "They are JSON analysis records in your user Library under Application Support/App Delta/Baselines. Delete them from Saved Baselines in the app.":
+      "사용자 라이브러리의 Application Support/App Delta/Baselines에 JSON 분석 기록으로 저장됩니다. 앱의 ‘저장된 기준점’에서 삭제할 수 있습니다.",
+    "Understand changes between two macOS app builds.": "두 macOS 앱 빌드의 변경점을 이해하세요.",
+    "Use": "사용",
+    "What are Baseline and Candidate?": "기준 버전과 비교 대상은 무엇인가요?",
+    "What if the app was already updated?": "앱이 이미 업데이트됐다면 어떻게 하나요?",
+    "Where are saved baselines stored?": "저장된 기준점은 어디에 있나요?",
+    "Why can Gatekeeper results differ between Macs?": "Mac마다 Gatekeeper 결과가 다른 이유는 무엇인가요?",
+    "App Delta cannot reconstruct files that were already replaced. Use a previous DMG, a vendor or GitHub release, or a Time Machine copy as Baseline. Prepare App Update before the next update.":
+      "App Delta는 이미 교체된 파일을 복원할 수 없습니다. 이전 DMG, 공급자 또는 GitHub 릴리스, Time Machine 복사본을 기준 버전으로 사용하세요. 다음 업데이트 전에는 ‘앱 업데이트 비교 준비’를 실행하세요.",
+    "Application identity could not be confirmed": "애플리케이션 식별 정보를 확인할 수 없습니다",
+    "At least one identifier is unavailable. Check the application names and sources before interpreting the result.":
+      "하나 이상의 식별자를 확인할 수 없습니다. 결과를 해석하기 전에 애플리케이션 이름과 출처를 확인하세요.",
+    "Back to Sources": "선택 화면으로 돌아가기",
+    "Comparing %@ with %@ is supported, but packaging differences may produce many file and component changes.":
+      "%@와 %@ 비교를 지원하지만 패키징 차이로 인해 파일과 구성요소 변경이 많이 표시될 수 있습니다.",
+    "Different artifact formats selected": "서로 다른 아티팩트 형식을 선택했습니다",
+    "Different formats and identifiers detected": "서로 다른 형식과 식별자가 감지되었습니다",
+    "Different formats selected: %@ and %@. Comparison is supported, but packaging differences may appear as broad changes.":
+      "서로 다른 형식을 선택했습니다: %@ 및 %@. 비교는 지원하지만 패키징 차이가 광범위한 변경으로 표시될 수 있습니다.",
+    "Export a self-contained HTML report for people to read or JSON for automation. Reports are generated locally and use the currently selected language.":
+      "사람이 읽을 수 있는 독립형 HTML 보고서나 자동화용 JSON을 내보내세요. 보고서는 로컬에서 생성되며 현재 선택한 언어를 사용합니다.",
+    "Gatekeeper reflects the current Mac's trust policy, network availability, and cached notarization state. App Delta keeps accepted, rejected, and unavailable results separate.":
+      "Gatekeeper는 현재 Mac의 신뢰 정책, 네트워크 상태와 캐시된 공증 상태를 반영합니다. App Delta는 승인, 거부, 확인 불가 결과를 분리해 표시합니다.",
+    "Return to the artifact selection screen": "아티팩트 선택 화면으로 돌아갑니다",
+    "The identifiers are %@ and %@. Confirm that these are the intended versions before interpreting the result.":
+      "식별자는 %@ 및 %@입니다. 결과를 해석하기 전에 의도한 버전이 맞는지 확인하세요.",
+    "These appear to be different applications": "서로 다른 애플리케이션으로 보입니다",
   ]
 }

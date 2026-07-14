@@ -49,7 +49,7 @@ private struct ArtifactSidebarRow: View {
         .frame(width: 16)
       VStack(alignment: .leading, spacing: 2) {
         Text(label).font(.caption).foregroundStyle(.secondary)
-        Text("\(snapshot.identity.name) \(snapshot.identity.version)")
+        Text("\(snapshot.identity.name) \(L10n.text(snapshot.identity.version))")
           .lineLimit(1)
       }
     }

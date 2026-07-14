@@ -34,6 +34,8 @@ final class ComparisonStore: ObservableObject {
 
   @Published var baseline: SelectedArtifact?
   @Published var candidate: SelectedArtifact?
+  @Published var savedBaseline: SavedBaseline?
+  @Published var savedBaselines: [SavedBaselineSummary]
   @Published var phase: Phase = .idle
   @Published var report: DeltaReport?
   @Published var selectedCategory: DeltaCategory = .overview {
@@ -51,23 +53,53 @@ final class ComparisonStore: ObservableObject {
   private let analyzer: any ArtifactAnalyzing
   private let engine: DeltaEngine
   private let exporter: ReportExporter
+  private let baselineVault: BaselineVault
   private var analysisTask: Task<Void, Never>?
+  private var baselineListTask: Task<Void, Never>?
   private var analysisGeneration: UUID?
+  private var baselineListGeneration: UUID?
 
   init(
     analyzer: any ArtifactAnalyzing = AppAnalyzer(),
     engine: DeltaEngine = DeltaEngine(),
-    exporter: ReportExporter = ReportExporter()
+    exporter: ReportExporter = ReportExporter(),
+    baselineVault: BaselineVault = BaselineVault()
   ) {
     self.analyzer = analyzer
     self.engine = engine
     self.exporter = exporter
+    self.baselineVault = baselineVault
+    savedBaselines = []
+    loadBaselineSummaries()
   }
 
-  deinit { analysisTask?.cancel() }
+  deinit {
+    analysisTask?.cancel()
+    baselineListTask?.cancel()
+  }
 
   var canAnalyze: Bool {
-    baseline != nil && candidate != nil && !phase.isWorking
+    (baseline != nil || savedBaseline != nil) && candidate != nil && !phase.isWorking
+  }
+
+  var canSwap: Bool {
+    baseline != nil && candidate != nil && savedBaseline == nil && !phase.isWorking
+  }
+
+  var compatibilityNotice: ComparisonCompatibilityNotice? {
+    guard let report else { return nil }
+    return ComparisonCompatibilityNotice.evaluate(before: report.before, after: report.after)
+  }
+
+  var selectionFormatNotice: String? {
+    let baselineKind = savedBaseline?.snapshot.sourceKind ?? baseline?.kind
+    guard let baselineKind, let candidateKind = candidate?.kind, baselineKind != candidateKind
+    else {
+      return nil
+    }
+    return L10n.format(
+      "Different formats selected: %@ and %@. Comparison is supported, but packaging differences may appear as broad changes.",
+      baselineKind.label, candidateKind.label)
   }
 
   var selectedItem: DeltaItem? {
@@ -82,7 +114,9 @@ final class ComparisonStore: ObservableObject {
       return
     }
     switch slot {
-    case .baseline: baseline = artifact
+    case .baseline:
+      baseline = artifact
+      savedBaseline = nil
     case .candidate: candidate = artifact
     }
     phase = .idle
@@ -113,7 +147,9 @@ final class ComparisonStore: ObservableObject {
   func clear(_ slot: Slot) {
     stopCurrentAnalysis()
     switch slot {
-    case .baseline: baseline = nil
+    case .baseline:
+      baseline = nil
+      savedBaseline = nil
     case .candidate: candidate = nil
     }
     report = nil
@@ -122,7 +158,7 @@ final class ComparisonStore: ObservableObject {
   }
 
   func swapArtifacts() {
-    guard !phase.isWorking else { return }
+    guard canSwap else { return }
     (baseline, candidate) = (candidate, baseline)
     if let report {
       self.report = engine.compare(before: report.after, after: report.before)
@@ -131,7 +167,9 @@ final class ComparisonStore: ObservableObject {
   }
 
   func analyze() {
-    guard let baseline, let candidate, canAnalyze else { return }
+    guard let candidate, canAnalyze else { return }
+    let baselineArtifact = baseline
+    let savedSnapshot = savedBaseline?.snapshot
     stopCurrentAnalysis()
     let analyzer = self.analyzer
     let engine = self.engine
@@ -141,9 +179,15 @@ final class ComparisonStore: ObservableObject {
     analysisTask = Task { [weak self] in
       guard let self else { return }
       do {
-        phase = .inspectingBaseline
-        let before = try await cancellableDetachedValue(priority: .userInitiated) {
-          try analyzer.analyze(baseline)
+        let before: AppSnapshot
+        if let savedSnapshot {
+          before = savedSnapshot
+        } else {
+          guard let baselineArtifact else { throw CancellationError() }
+          phase = .inspectingBaseline
+          before = try await cancellableDetachedValue(priority: .userInitiated) {
+            try analyzer.analyze(baselineArtifact)
+          }
         }
         try ensureCurrent(generation)
 
@@ -186,6 +230,172 @@ final class ComparisonStore: ObservableObject {
     phase = .idle
   }
 
+  func returnToSourceSelection() {
+    stopCurrentAnalysis()
+    report = nil
+    selectedCategory = .overview
+    selectedItemID = nil
+    searchText = ""
+    phase = .idle
+  }
+
+  func chooseApplicationToPreserve() {
+    let panel = NSOpenPanel()
+    panel.title = L10n.text("Prepare App Update Comparison")
+    panel.prompt = L10n.text("Preserve Baseline")
+    panel.canChooseFiles = true
+    panel.canChooseDirectories = true
+    panel.allowsMultipleSelection = false
+    panel.resolvesAliases = false
+    panel.treatsFilePackagesAsDirectories = false
+    panel.allowedContentTypes = [.applicationBundle]
+    guard panel.runModal() == .OK, let url = panel.url else { return }
+    preserveBaselineForUpdate(at: url)
+  }
+
+  func preserveBaselineForUpdate(at url: URL) {
+    guard let artifact = SelectedArtifact(url: url), artifact.kind == .application else {
+      phase = .failed(L10n.text("Choose a macOS application to preserve before updating."))
+      return
+    }
+    stopCurrentAnalysis()
+    baselineListTask?.cancel()
+    baselineListTask = nil
+    baselineListGeneration = nil
+    let analyzer = self.analyzer
+    let vault = baselineVault
+    let generation = UUID()
+    analysisGeneration = generation
+
+    analysisTask = Task { [weak self] in
+      guard let self else { return }
+      var writtenRecord: SavedBaseline?
+      do {
+        phase = .inspectingBaseline
+        let snapshot = try await cancellableDetachedValue(priority: .userInitiated) {
+          try analyzer.analyze(artifact)
+        }
+        try ensureCurrent(generation)
+        let record = try await cancellableDetachedValue(priority: .utility) {
+          try vault.save(snapshot: snapshot, originalApplicationURL: url)
+        }
+        writtenRecord = record
+        try ensureCurrent(generation)
+        let summaries = try await cancellableDetachedValue(priority: .utility) {
+          try vault.list()
+        }
+        try ensureCurrent(generation)
+        savedBaselines = summaries
+        baseline = nil
+        savedBaseline = record
+        candidate = artifact
+        report = nil
+        selectedItemID = nil
+        phase = .completed
+        writtenRecord = nil
+        analysisGeneration = nil
+        analysisTask = nil
+      } catch is CancellationError {
+        if let writtenRecord {
+          try? await cancellableDetachedValue(priority: .utility) {
+            try vault.delete(writtenRecord)
+          }
+        }
+        if analysisGeneration == generation {
+          phase = .idle
+          analysisGeneration = nil
+          analysisTask = nil
+        }
+      } catch {
+        if let writtenRecord {
+          try? await cancellableDetachedValue(priority: .utility) {
+            try vault.delete(writtenRecord)
+          }
+        }
+        if analysisGeneration == generation {
+          phase = .failed(
+            L10n.format("The baseline could not be saved: %@", error.localizedDescription))
+          analysisGeneration = nil
+          analysisTask = nil
+        }
+      }
+    }
+  }
+
+  func selectSavedBaseline(_ summary: SavedBaselineSummary) {
+    stopCurrentAnalysis()
+    baseline = nil
+    savedBaseline = nil
+    report = nil
+    selectedItemID = nil
+    phase = .inspectingBaseline
+    let vault = baselineVault
+    let generation = UUID()
+    analysisGeneration = generation
+
+    analysisTask = Task { [weak self] in
+      guard let self else { return }
+      do {
+        let record = try await cancellableDetachedValue(priority: .userInitiated) {
+          try vault.load(summary)
+        }
+        try ensureCurrent(generation)
+        savedBaseline = record
+        if FileManager.default.fileExists(atPath: record.originalApplicationURL.path) {
+          candidate = SelectedArtifact(url: record.originalApplicationURL)
+        }
+        phase = .idle
+        analysisGeneration = nil
+        analysisTask = nil
+      } catch is CancellationError {
+        if analysisGeneration == generation {
+          phase = .idle
+          analysisGeneration = nil
+          analysisTask = nil
+        }
+      } catch {
+        if analysisGeneration == generation {
+          phase = .failed(
+            L10n.format("The saved baseline could not be loaded: %@", error.localizedDescription))
+          analysisGeneration = nil
+          analysisTask = nil
+        }
+      }
+    }
+  }
+
+  func deleteSavedBaseline(_ summary: SavedBaselineSummary) {
+    baselineListTask?.cancel()
+    let vault = baselineVault
+    let generation = UUID()
+    baselineListGeneration = generation
+    baselineListTask = Task { [weak self] in
+      guard let self else { return }
+      do {
+        let summaries = try await cancellableDetachedValue(priority: .utility) {
+          try vault.delete(summary)
+          return try vault.list()
+        }
+        try ensureCurrentBaselineList(generation)
+        savedBaselines = summaries
+        if savedBaseline?.id == summary.id {
+          savedBaseline = nil
+        }
+      } catch is CancellationError {
+        // A newer list operation owns publication and cleanup.
+      } catch {
+        if baselineListGeneration == generation {
+          phase = .failed(
+            L10n.format("The saved baseline could not be deleted: %@", error.localizedDescription))
+        }
+      }
+      if baselineListGeneration == generation {
+        baselineListTask = nil
+        baselineListGeneration = nil
+      }
+    }
+  }
+
   func refreshLocalization() {
     if let report {
       self.report = engine.compare(before: report.before, after: report.after)
@@ -202,6 +412,34 @@ final class ComparisonStore: ObservableObject {
     analysisGeneration = nil
     analysisTask?.cancel()
     analysisTask = nil
+  }
+
+  private func ensureCurrentBaselineList(_ generation: UUID) throws {
+    try Task.checkCancellation()
+    guard baselineListGeneration == generation else { throw CancellationError() }
+  }
+
+  private func loadBaselineSummaries() {
+    baselineListTask?.cancel()
+    let vault = baselineVault
+    let generation = UUID()
+    baselineListGeneration = generation
+    baselineListTask = Task { [weak self] in
+      guard let self else { return }
+      do {
+        let summaries = try await cancellableDetachedValue(priority: .utility) {
+          try vault.list()
+        }
+        try ensureCurrentBaselineList(generation)
+        savedBaselines = summaries
+      } catch {
+        // A corrupt or inaccessible vault must not block launching the application.
+      }
+      if baselineListGeneration == generation {
+        baselineListTask = nil
+        baselineListGeneration = nil
+      }
+    }
   }
 
   func export(_ format: ReportFormat) {

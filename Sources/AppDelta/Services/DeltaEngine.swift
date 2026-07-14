@@ -273,6 +273,27 @@ struct DeltaEngine: Sendable {
       ))
   }
 
+  private func compareScalar(
+    _ title: String,
+    _ before: String?,
+    _ after: String?,
+    category: DeltaCategory,
+    severity: DeltaSeverity = .info,
+    items: inout [DeltaItem]
+  ) {
+    guard before != after else { return }
+    items.append(
+      .init(
+        id: "scalar:\(category.rawValue):\(title)", category: category,
+        kind: deltaKind(before: before, after: after), severity: severity,
+        title: L10n.text(title),
+        detail: L10n.text("Observable metadata changed between the selected artifacts."),
+        evidencePath: nil,
+        before: before.map(L10n.text),
+        after: after.map(L10n.text)
+      ))
+  }
+
   private func deltaKind<T>(before: T?, after: T?) -> DeltaKind {
     switch (before, after) {
     case (nil, .some): .added

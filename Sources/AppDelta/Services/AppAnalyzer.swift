@@ -68,8 +68,8 @@ struct AppAnalyzer: @unchecked Sendable {
         name: string(info["CFBundleDisplayName"]) ?? string(info["CFBundleName"])
           ?? appURL.deletingPathExtension().lastPathComponent,
         bundleIdentifier: string(info["CFBundleIdentifier"]) ?? "unknown.bundle.identifier",
-        version: string(info["CFBundleShortVersionString"]) ?? L10n.text("Unknown"),
-        build: string(info["CFBundleVersion"]) ?? L10n.text("Unknown"),
+        version: string(info["CFBundleShortVersionString"]) ?? "Unknown",
+        build: string(info["CFBundleVersion"]) ?? "Unknown",
         minimumSystemVersion: string(info["LSMinimumSystemVersion"]),
         sdkVersion: string(info["DTSDKName"]) ?? string(info["DTPlatformVersion"]),
         executableName: string(info["CFBundleExecutable"]),
@@ -162,9 +162,9 @@ struct AppAnalyzer: @unchecked Sendable {
       sourceKind: .installerPackage,
       identity: .init(
         name: inferredName,
-        bundleIdentifier: packageMetadata.identifier ?? L10n.text("Unavailable"),
-        version: packageMetadata.version ?? L10n.text("Unavailable"),
-        build: L10n.text("Not applicable"),
+        bundleIdentifier: packageMetadata.identifier ?? "Unavailable",
+        version: packageMetadata.version ?? "Unavailable",
+        build: "Not applicable",
         minimumSystemVersion: nil,
         sdkVersion: nil,
         executableName: nil,
@@ -178,7 +178,7 @@ struct AppAnalyzer: @unchecked Sendable {
           .filter { $0.contains("Developer ID Installer") || $0.contains("Authority") },
         cdHash: nil,
         signedTime: nil,
-        format: L10n.text("Installer package"),
+        format: "Installer package",
         signatureStatus: verificationState(for: signature, rejectedStatuses: [1]),
         signatureMessage: diagnostic(signature.combinedString, artifactURL: source),
         gatekeeperStatus: verificationState(for: gatekeeper, rejectedStatuses: [3]),
@@ -229,7 +229,7 @@ struct AppAnalyzer: @unchecked Sendable {
       format: parseValue("Format", in: text),
       signatureStatus: verificationState(for: verify, rejectedStatuses: [1]),
       signatureMessage: diagnostic(
-        verify.combinedString.isEmpty ? L10n.text("Signature verified.") : verify.combinedString,
+        verify.combinedString.isEmpty ? "Signature verified." : verify.combinedString,
         artifactURL: appURL),
       gatekeeperStatus: verificationState(for: gatekeeper, rejectedStatuses: [3]),
       gatekeeperMessage: diagnostic(gatekeeper.combinedString, artifactURL: appURL),
@@ -625,8 +625,7 @@ struct AppAnalyzer: @unchecked Sendable {
 
   private func concise(_ value: String) -> String {
     let clean = value.trimmingCharacters(in: .whitespacesAndNewlines)
-    return clean.isEmpty
-      ? L10n.text("No diagnostic text was returned.") : String(clean.prefix(1_000))
+    return clean.isEmpty ? "No diagnostic text was returned." : String(clean.prefix(1_000))
   }
 
   private func diagnostic(_ value: String, artifactURL: URL) -> String {

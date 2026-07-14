@@ -49,6 +49,17 @@ struct ComparisonRootView: View {
 
   @ToolbarContentBuilder
   private var toolbarContent: some ToolbarContent {
+    if store.report != nil {
+      ToolbarItem(placement: .navigation) {
+        Button {
+          store.returnToSourceSelection()
+        } label: {
+          Label(L10n.text("Back to Sources"), systemImage: "chevron.backward")
+        }
+        .help(L10n.text("Return to the artifact selection screen"))
+      }
+    }
+
     ToolbarItemGroup(placement: .primaryAction) {
       Button {
         store.swapArtifacts()
@@ -56,7 +67,7 @@ struct ComparisonRootView: View {
         Label(L10n.text("Swap"), systemImage: "arrow.left.arrow.right")
       }
       .help(L10n.text("Swap baseline and candidate"))
-      .disabled(store.baseline == nil || store.candidate == nil || store.phase.isWorking)
+      .disabled(!store.canSwap)
 
       Button {
         store.analyze()
@@ -111,12 +122,15 @@ struct ComparisonRootView: View {
       chooseBaseline: { store.chooseArtifact(for: .baseline) },
       chooseCandidate: { store.chooseArtifact(for: .candidate) },
       analyze: { store.analyze() },
+      returnToSources: { store.returnToSourceSelection() },
       swap: { store.swapArtifacts() },
       exportHTML: { store.export(.html) },
       exportJSON: { store.export(.json) },
       toggleInspector: { store.showsInspector.toggle() },
       canAnalyze: store.canAnalyze,
-      canExport: store.report != nil
+      canExport: store.report != nil,
+      canSwap: store.canSwap,
+      canReturnToSources: store.report != nil
     )
   }
 }

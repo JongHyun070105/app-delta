@@ -1,5 +1,9 @@
 # App Delta
 
+<p align="center">
+  <img src="Resources/AppIcon.png" width="128" alt="App Delta icon">
+</p>
+
 **See what changed inside two macOS app builds before you replace one with the other.**
 
 App Delta is a local, native macOS comparison tool for `.app`, `.dmg`, `.pkg`,
@@ -11,6 +15,8 @@ and files without launching the inspected software or uploading its contents.
 > application is safe, malicious, trustworthy, or suitable to install.
 
 [한국어 문서](README_KO.md) · [Implementation plan](IMPLEMENTATION_PLAN.md)
+
+[Download the latest macOS preview](https://github.com/JongHyun070105/app-delta/releases)
 
 ![App Delta comparing newly added macOS capabilities](docs/app-delta.jpg)
 
@@ -29,7 +35,17 @@ and files without launching the inspected software or uploading its contents.
 Every changed row is labeled `Added`, `Removed`, or `Changed` and can be opened
 in an inspector showing its before/after values and evidence path.
 
-## Build and run
+## Download and install
+
+Download the universal macOS DMG from [GitHub Releases](https://github.com/JongHyun070105/app-delta/releases),
+open it, and drag **AppDelta** into **Applications**. The preview build supports
+Apple Silicon and Intel Macs.
+
+> Current GitHub binaries are ad-hoc signed and not Apple-notarized. macOS may
+> require Control-clicking the app and choosing **Open**. A normal double-click
+> install requires a Developer ID certificate and Apple notarization.
+
+## Build and run from source
 
 Requirements: macOS 14 or later and Xcode 16 or later.
 
@@ -58,7 +74,26 @@ swift test                              # unit + secure artifact integration tes
    its evidence.
 5. Export a self-contained HTML report or structured JSON when needed.
 
+If you selected the wrong artifact, use **Back to Sources** in the report or
+press Command-[. Your selections stay in place so you can replace only the
+incorrect one. App Delta also supports mixed `.app`, `.dmg`, and installer
+comparisons; it warns when packaging formats or application identifiers differ
+so those broad changes are not mistaken for an ordinary version update.
+
 Keyboard shortcuts are available from the **Comparison** and **Export** menus.
+
+### Comparing a built-in app update
+
+If an app replaces itself during an update, the old bundle is normally lost.
+Before updating, click **Prepare App Update…** and select the installed app.
+App Delta stores a compact analysis snapshot—not a copy of the application—and
+keeps that app path as Candidate. Run the update normally, return to App Delta,
+and compare. Saved snapshots remain available from **Saved Baselines…**.
+
+If the update already happened, App Delta cannot reconstruct the replaced
+files. Use an older DMG, vendor/GitHub release, or Time Machine copy as Baseline.
+
+Use **Help → App Delta Help** for the built-in searchable Q&A.
 
 ### Language
 
@@ -96,8 +131,8 @@ is converted into a malware verdict.
   not unpack arbitrary installer payloads.
 - SHA-256 hashing stops at a 512 MB per-artifact safety budget, after which files
   are compared by metadata only.
-- The source build is ad-hoc signed. Public binary distribution should add a
-  Developer ID signature and notarization in a trusted release workflow.
+- Preview DMGs are ad-hoc signed and unnotarized. Public stable distribution
+  still requires Developer ID signing and Apple notarization.
 
 ## Contributing
 
